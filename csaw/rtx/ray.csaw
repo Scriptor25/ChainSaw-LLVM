@@ -1,0 +1,48 @@
+thing: ray {
+    orig: point3,
+    dir: vec3,
+    tm: num
+}
+
+$ray {
+    my.orig = point3(0, 0, 0);
+    my.dir  = vec3(0, 0, 0);
+    my.tm   = 0;
+}
+
+$ray (origin: point3, direction: vec3) {
+    my.orig = origin;
+    my.dir  = direction;
+    my.tm   = 0;
+}
+
+$ray (origin: point3, direction: vec3, time: num) {
+    my.orig = origin;
+    my.dir  = direction;
+    my.tm   = time;
+}
+
+@set (orig: point3, dir: vec3) -> ray {
+    my.orig = orig;
+    my.dir  = dir;
+}
+
+@set (orig: point3, dir: vec3, tm: num) -> ray {
+    my.orig = orig;
+    my.dir  = dir;
+    my.tm   = tm;
+}
+
+@set (r: ray) -> ray {
+    my.orig = r.orig;
+    my.dir  = r.dir;
+    my.tm   = r.tm;
+}
+
+@origin: point3 -> ray { ret my.orig; }
+@direction: vec3 -> ray { ret my.dir; }
+@time: num -> ray { ret my.tm; }
+
+@at: point3 (t: num) -> ray {
+    ret my.orig + t * my.dir;
+}

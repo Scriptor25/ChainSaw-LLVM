@@ -1,6 +1,6 @@
 #include "parser.h"
 
-std::ostream& csaw::Token::operator<<(std::ostream& out) const
+std::ostream& csaw::operator<<(std::ostream& out, const Token& token)
 {
-	return out << "[ '" << Value << "' -> " << Type << " (" << Line << ") ]";
+	return out << "[ '" << token.Value << "' -> " << token.Type << " (" << token.Line << ") ]";
 }

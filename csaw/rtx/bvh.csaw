@@ -1,0 +1,66 @@
+thing: bvh_node : hittable {
+    left: hittable,
+    right: hittable,
+    bbox: aabb
+}
+
+$bvh_node (lst: hittable_list) {
+    my = bvh_node(lst.objects);
+}
+
+$bvh_node (objects: list) {
+    num axis = random_int(0, 2);
+    str comparator = (axis == 0) ? "box_x_compare" : (axis == 1) ? "box_y_compare" : "box_z_compare";
+
+    num object_span = objects.size();
+
+    if (object_span == 1) {
+        my.left = my.right = objects.get(0);
+    } else if (object_span == 2) {
+        if (box_compare(objects.get(0), objects.get(1), axis)) {
+            my.left = objects.get(0);
+            my.right = objects.get(1);
+        } else {
+            my.left = objects.get(1);
+            my.right = objects.get(0);
+        }
+    } else {
+        objects = objects.sort(comparator);
+
+        num mid = floor(object_span / 2);
+        my.left = bvh_node(objects.sub(0, mid));
+        my.right = bvh_node(objects.sub(mid, object_span));
+    }
+
+    my.bbox = aabb(my.left.bounding_box(), my.right.bounding_box());
+}
+
+@bounding_box: aabb -> bvh_node { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> bvh_node {
+    if (!my.bbox.hit(r, ray_t))
+        ret false;
+    
+    bool hit_left = my.left.hit(r, ray_t, rec);
+    bool hit_right = my.right.hit(r, interval(ray_t.min, hit_left ? rec.t : ray_t.max), rec);
+
+    ret hit_left || hit_right;
+}
+
+@box_compare: num (a: hittable, b: hittable, axis_index: num) {
+    num ma = a.bounding_box().axis(axis_index).min;
+    num mb = b.bounding_box().axis(axis_index).min;
+    ret ma < mb ? -1 : mb < ma ? 1 : 0;
+}
+
+@box_x_compare: num (a: hittable, b: hittable) {
+    ret box_compare(a, b, 0);
+}
+
+@box_y_compare: num (a: hittable, b: hittable) {
+    ret box_compare(a, b, 1);
+}
+
+@box_z_compare: num (a: hittable, b: hittable) {
+    ret box_compare(a, b, 2);
+}

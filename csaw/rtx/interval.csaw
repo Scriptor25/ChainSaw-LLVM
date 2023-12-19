@@ -1,0 +1,56 @@
+thing: interval {
+    min: num,
+    max: num
+}
+
+$interval {
+    my.min = infinity;
+    my.max = -infinity;
+}
+
+$interval (min: num, max: num) {
+    my.min = min;
+    my.max = max;
+}
+
+$interval (a: interval, b: interval) {
+    my.min = min(a.min, b.min);
+    my.max = max(a.max, b.max);
+}
+
+$interval (i: interval) {
+    my.min = i.min;
+    my.max = i.max;
+}
+
+@contains: bool (x: num) -> interval {
+    ret my.min <= x && x <= my.max;
+}
+
+@surrounds: bool (x: num) -> interval {
+    ret my.min < x && x < my.max;
+}
+
+@clamp: num (x: num) -> interval {
+    ret x < my.min ? my.min : x > my.max ? my.max : x;
+}
+
+@size: num -> interval {
+    ret my.max - my.min;
+}
+
+@expand: interval (delta: num) -> interval {
+    ret interval(my.min - delta, my.max + delta);
+}
+
+@(+): interval (ival: interval, displacement: num) {
+    ret interval(ival.min + displacement, ival.max + displacement);
+}
+
+@(+): interval (displacement: num, ival: interval) {
+    ret ival + displacement;
+}
+
+interval empty    = interval( infinity, -infinity);
+interval universe = interval(-infinity,  infinity);
+interval zero_one = interval(0, 1);

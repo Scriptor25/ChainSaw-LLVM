@@ -133,7 +133,7 @@
   <ItemGroup>
     <ClCompile Include="src\csaw.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
-    <ClCompile Include="src\parser\Token.cpp" />
+    <ClCompile Include="src\parser\token.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -26,7 +26,7 @@
     <ClCompile Include="src\csaw.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\parser\Token.cpp">
+    <ClCompile Include="src\parser\token.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\parser\parser.cpp">

@@ -1,0 +1,34 @@
+thing: pool {
+    size: num,
+    threads: list,
+}
+
+$pool (size: num, tasks: list) {
+    my.size = size;
+    my.threads = list();
+    num n = tasks.size() / size;
+    for (num i = 0; i < size; i++) {
+        list t;
+        for (num j = 0; j < n; j++)
+            t.add(tasks.pop());
+        if (i == size - 1 && !!tasks)
+            while (!!tasks)
+                t.add(tasks.pop());
+        my.threads.add(thrd([i, t]() poolthrd(i, t)).start());
+    }
+}
+
+@poolthrd (id: num, tasks: list) {
+    while (!!tasks) {
+        lambda task = tasks.pop();
+        task();
+    }
+}
+
+@join -> pool {
+    for (num i = 0; i < my.size; i++) {
+        thrd t = my.threads[i];
+        if (t.isAlive())
+            t.join();
+    }
+}

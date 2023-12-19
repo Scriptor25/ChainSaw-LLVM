@@ -1,0 +1,78 @@
+thing: aabb {
+    x: interval,
+    y: interval,
+    z: interval
+}
+
+$aabb { ## The default AABB is empty, since intervals are empty by default.
+    my.x = my.y = my.z = interval();
+}
+
+$aabb (ix: interval, iy: interval, iz: interval) {
+    my.x = ix;
+    my.y = iy;
+    my.z = iz;
+}
+
+$aabb (a: point3, b: point3) {
+    ## Treat the two points a and b as extrema for the bounding box, so we don't require a
+    ## particular minimum/maximum coordinate order.
+    my.x = interval(min(a.x, b.x), max(a.x, b.x));
+    my.y = interval(min(a.y, b.y), max(a.y, b.y));
+    my.z = interval(min(a.z, b.z), max(a.z, b.z));
+}
+
+$aabb (box1: aabb, box2: aabb) {
+    my.x = interval(box1.x, box2.x);
+    my.y = interval(box1.y, box2.y);
+    my.z = interval(box1.z, box2.z);
+}
+
+@pad: aabb -> aabb {
+    ## Return an AABB that has no side narrower than some delta, padding if necessary.
+    num delta = 0.0001;
+    interval new_x = (my.x.size() >= delta) ? my.x : my.x.expand(delta);
+    interval new_y = (my.y.size() >= delta) ? my.y : my.y.expand(delta);
+    interval new_z = (my.z.size() >= delta) ? my.z : my.z.expand(delta);
+
+    ret aabb(new_x, new_y, new_z);
+}
+
+@axis: interval (n: num) -> aabb {
+    if (n == 0) ret my.x;
+    if (n == 1) ret my.y;
+    if (n == 2) ret my.z;
+    ret interval();
+}
+
+@(+): aabb (bbox: aabb, offset: vec3) {
+    ret aabb(bbox.x + offset.x(), bbox.y + offset.y(), bbox.z + offset.z());
+}
+
+@(+): aabb (offset: vec3, bbox: aabb) {
+    ret bbox + offset;
+}
+
+@hit: bool (r: ray, ray_t: interval) -> aabb {
+    ray_t = interval(ray_t);
+    for (num a = 0; a < 3; a++) {
+        num invD = 1 / r.direction().e(a);
+        num orig = r.origin().e(a);
+
+        num t0 = (my.axis(a).min - orig) * invD;
+        num t1 = (my.axis(a).max - orig) * invD;
+
+        if (invD < 0) {
+            num tn = t0;
+            t0 = t1;
+            t1 = tn;
+        }
+
+        if (t0 > ray_t.min) ray_t.min = t0;
+        if (t1 < ray_t.max) ray_t.max = t1;
+
+        if (ray_t.max <= ray_t.min)
+            ret false;
+    }
+    ret true;
+}

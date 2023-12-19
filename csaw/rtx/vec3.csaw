@@ -1,0 +1,167 @@
+thing: vec3 {
+    x: num,
+    y: num,
+    z: num
+}
+
+$vec3 { my.x = my.y = my.z = 0; }
+$vec3 (x: num, y: num, z: num) {
+    my.x = x;
+    my.y = y;
+    my.z = z;
+}
+
+@set (v: vec3) -> vec3 {
+    my.x = v.x;
+    my.y = v.y;
+    my.z = v.z;
+}
+
+@copy: vec3 -> vec3 {
+    ret vec3(my.x, my.y, my.z);
+}
+
+@x: num -> vec3 { ret my.x; }
+@y: num -> vec3 { ret my.y; }
+@z: num -> vec3 { ret my.z; }
+
+@(-): vec3 -> vec3 { ret vec3(-my.x, -my.y, -my.z); }
+@e: num (i: num) -> vec3 {
+    ret (i == 0) ? my.x
+      : (i == 1) ? my.y
+      : (i == 2) ? my.z
+      : 0;
+}
+@e (i: num, v: num) -> vec3 {
+    if      (i == 0) my.x = v;
+    else if (i == 1) my.y = v;
+    else if (i == 2) my.z = v;
+}
+
+@(+): vec3 (v: vec3) -> vec3 {
+    my.x += v.x;
+    my.y += v.y;
+    my.z += v.z;
+    ret my;
+}
+
+@(*): vec3 (t: num) -> vec3 {
+    my.x *= t;
+    my.y *= t;
+    my.z *= t;
+    ret my;
+}
+
+@(/): vec3 (t: num) -> vec3 {
+    ret my *= (1 / t);
+}
+
+@length: num -> vec3 {
+    ret sqrt(my.length_squared());
+}
+
+@length_squared: num -> vec3 {
+    ret my.x * my.x + my.y * my.y + my.z * my.z;
+}
+
+@near_zero: bool -> vec3 {
+    ## Return true if the vector is close to zero in all dimensions.
+    num s = 1e-8;
+    ret (abs(my.x) < s) && (abs(my.y) < s) && (abs(my.z) < s);
+}
+
+alias point3 : vec3; ## point3 is just an alias for vec3, but useful for geometric clarity in the code.
+$point3 { my = vec3(); }
+$point3 (x: num, y: num, z: num) { my = vec3(x, y, z); }
+
+## Vector Utility Functions
+
+@out (v: vec3) {
+    printf("[ %f %f %f ]", v.x, v.y, v.z);
+}
+
+@(+): vec3 (u: vec3, v: vec3) {
+    ret vec3(u.x + v.x, u.y + v.y, u.z + v.z);
+}
+
+@(-): vec3 (u: vec3, v: vec3) {
+    ret vec3(u.x - v.x, u.y - v.y, u.z - v.z);
+}
+
+@(*): vec3 (u: vec3, v: vec3) {
+    ret vec3(u.x * v.x, u.y * v.y, u.z * v.z);
+}
+
+@(*): vec3 (t: num, v: vec3) {
+    ret vec3(t * v.x, t * v.y, t * v.z);
+}
+
+@(*): vec3 (v: vec3, t: num) {
+    ret t * v;
+}
+
+@(/): vec3 (v: vec3, t: num) {
+    ret (1 / t) * v;
+}
+
+@dot: num (u: vec3, v: vec3) {
+    ret u.x * v.x + u.y * v.y + u.z * v.z;
+}
+
+@cross: vec3 (u: vec3, v: vec3) {
+    ret vec3(
+        u.y * v.z - u.z * v.y,
+        u.z * v.x - u.x * v.z,
+        u.x * v.y - u.y * v.x
+    );
+}
+
+@unit_vector: vec3 (v: vec3) {
+    ret v / v.length();
+}
+
+@random_in_unit_disk: vec3 {
+    while (true) {
+        vec3 p = vec3(random(-1, 1), random(-1, 1), 0);
+        if (p.length_squared() < 1)
+            ret p;
+    }
+}
+
+@random_vec3: vec3 {
+    ret vec3(random(), random(), random());
+}
+
+@random_vec3: vec3 (min: num, max: num) {
+    ret vec3(random(min, max), random(min, max), random(min, max));
+}
+
+@random_in_unit_sphere: vec3 {
+    while (true) {
+        vec3 p = random_vec3(-1, 1);
+        if (p.length_squared() < 1)
+            ret p;
+    }
+}
+
+@random_unit_vector: vec3 {
+    ret unit_vector(random_in_unit_sphere());
+}
+
+@random_on_hemisphere: vec3 (normal: vec3) {
+    vec3 on_unit_sphere = random_unit_vector();
+    ret (dot(on_unit_sphere, normal) > 0.0) ## In the same hemisphere as the normal
+        ?  on_unit_sphere
+        : -on_unit_sphere;
+}
+
+@reflect: vec3 (v: vec3, n: vec3) {
+    ret v - 2 * dot(v, n) * n;
+}
+
+@refract: vec3 (uv: vec3, n: vec3, etai_over_etat: num) {
+    num cos_theta = min(dot(-uv, n), 1.0);
+    vec3 r_out_perp = etai_over_etat * (uv + cos_theta * n);
+    vec3 r_out_parallel = -sqrt(abs(1.0 - r_out_perp.length_squared())) * n;
+    ret r_out_perp + r_out_parallel;
+}

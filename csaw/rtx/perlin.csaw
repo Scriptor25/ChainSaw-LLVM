@@ -1,0 +1,121 @@
+num point_count = 256;
+
+thing: perlin {
+    ranvec: list,
+    perm_x: list,
+    perm_y: list,
+    perm_z: list
+}
+
+$perlin {
+    my.ranvec = list();
+    for (num i = 0; i < point_count; i++)
+        my.ranvec.add(unit_vector(random_vec3(-1, 1)));
+
+    my.perm_x = perlin_generate_perm();
+    my.perm_y = perlin_generate_perm();
+    my.perm_z = perlin_generate_perm();
+}
+
+@noise: num (p: point3) -> perlin {
+    num u = p.x() - floor(p.x());
+    num v = p.y() - floor(p.y());
+    num w = p.z() - floor(p.z());
+    u = u * u * (3 - 2 * u);
+    v = v * v * (3 - 2 * v);
+    w = w * w * (3 - 2 * w);
+
+    num i = floor(p.x());
+    num j = floor(p.y());
+    num k = floor(p.z());
+
+    list c = list();
+    for (num n = 0; n < 2; n++) {
+        list b = list();
+        for (num m = 0; m < 2; m++) {
+            list a = list();
+            for (num o = 0; o < 2; o++)
+                a.add(vec3());
+            b.add(a);
+        }
+        c.add(b);
+    }
+
+    for (num di = 0; di < 2; di++)
+        for (num dj = 0; dj < 2; dj++)
+            for (num dk = 0; dk < 2; dk++)
+                c.get(di).get(dj).set(dk, my.ranvec.get(
+                    my.perm_x.get((i + di) & 255) ^
+                    my.perm_y.get((j + dj) & 255) ^
+                    my.perm_z.get((k + dk) & 255)
+                ));
+
+    ret perlin_interp(c, u, v, w);
+}
+
+@turb: num (p: point3) -> perlin { ret my.turb(p, 7); }
+
+@turb: num (p: point3, depth: num) -> perlin {
+    num accum = 0.0;
+    point3 temp_p = p.copy();
+    num weight = 1.0;
+
+    for (num i = 0; i < depth; i++) {
+        accum += weight * my.noise(temp_p);
+        weight *= 0.5;
+        temp_p *= 2;
+    }
+
+    ret abs(accum);
+}
+
+@trilinear_interp: num (c: list, u: num, v: num, w: num) {
+    num accum = 0.0;
+    for (num i = 0; i < 2; i++)
+        for (num j = 0; j < 2; j++)
+            for (num k = 0; k < 2; k++)
+                accum += (i * u + (1 - i) * (1 - u)) *
+                         (j * v + (1 - j) * (1 - v)) *
+                         (k * w + (1 - k) * (1 - w)) * c.get(i).get(j).get(k);
+
+    ret accum;
+}
+
+@perlin_interp: num (c: list, u: num, v: num, w: num) {
+    num uu = u * u * (3 - 2 * u);
+    num vv = v * v * (3 - 2 * v);
+    num ww = w * w * (3 - 2 * w);
+    num accum = 0.0;
+
+    for (num i = 0; i < 2; i++)
+        for (num j = 0; j < 2; j++)
+            for (num k = 0; k < 2; k++) {
+                vec3 weight_v = vec3(u - i, v - j, w - k);
+                accum += (i * uu + (1 - i) * (1 - uu))
+                       * (j * vv + (1 - j) * (1 - vv))
+                       * (k * ww + (1 - k) * (1 - ww))
+                       * dot(c.get(i).get(j).get(k), weight_v);
+            }
+
+    ret accum;
+}
+
+@perlin_generate_perm: list {
+    list p = list();
+
+    for (num i = 0; i < point_count; i++)
+        p.add(i);
+
+    permute(p, point_count);
+
+    ret p;
+}
+
+@permute (p: list, n: num) {
+    for (num i = n - 1; i > 0; i--) {
+        num target = random_int(0, i);
+        num tmp = p.get(i);
+        p.set(i, p.get(target));
+        p.set(target, tmp);
+    }
+}

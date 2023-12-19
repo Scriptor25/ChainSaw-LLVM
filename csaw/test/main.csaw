@@ -1,0 +1,31 @@
+num W = 1000;
+num H = W;
+num C = W * H;
+
+@random_color: num {
+    num r = floor(255.999 * random());
+    num g = floor(255.999 * random());
+    num b = floor(255.999 * random());
+
+    ret 0xff << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
+}
+
+@get_xy (i: num, xy: num[2]) {
+    xy[1] = floor(i / W);
+    xy[0] = (i - xy[1] * W);
+}
+
+@run (output: img, i: num) {
+    num[2] xy;
+    get_xy(i, xy);
+    output.set(xy[0], xy[1], random_color());
+}
+
+@main: num {
+
+    img output = img(W, H);
+    parallel(0, C, [output](i: num) run(output, i));
+    output.write("png", "output/test.png");
+
+    ret 0;
+}

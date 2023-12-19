@@ -1,6 +1,7 @@
 #pragma once
 
-#include "iostream"
+#include <iostream>
+#include <vector>
 
 namespace csaw
 {
@@ -26,12 +27,12 @@ namespace csaw
 			: Token(TOKEN_EOF, "", line)
 		{}
 
-		std::ostream& operator<<(std::ostream& out) const;
-
 		const TokenType Type;
 		const std::string Value;
 		const int Line;
 	};
+
+	std::ostream& operator<<(std::ostream& out, const Token& token);
 
 	class Parser
 	{
@@ -41,13 +42,20 @@ namespace csaw
 		{}
 
 	private:
+		int read();
 		void mark(int limit);
 		void reset();
-		int read();
-		std::shared_ptr<Token> next();
+
+	public:
+		std::shared_ptr<Token> Next();
+		std::shared_ptr<Token> Current();
 
 	private:
 		std::istream& m_Stream;
+		int m_Limit = 0;
+		int m_Index = 0;
+		char* m_Peek = nullptr;
+
 		std::shared_ptr<Token> m_Current;
 		int m_Line = 1;
 	};

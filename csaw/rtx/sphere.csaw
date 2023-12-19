@@ -1,0 +1,92 @@
+thing: sphere : hittable {
+    center1: point3,
+    radius: num,
+    mat: material,
+    is_moving: bool,
+    center_vec: vec3,
+
+    bbox: aabb
+}
+
+## Stationary Sphere
+$sphere (cen: point3, rad: num, mat: material) {
+    my.center1 = cen;
+    my.radius = rad;
+    my.mat = mat;
+    my.is_moving = false;
+
+    vec3 rvec = vec3(rad, rad, rad);
+    my.bbox = aabb(cen - rvec, cen + rvec);
+}
+
+## Moving Sphere
+$sphere (cen1: point3, cen2: point3, rad: num, mat: material) {
+    my.center1 = cen1;
+    my.radius = rad;
+    my.mat = mat;
+    my.is_moving = true;
+    my.center_vec = cen2 - cen1;
+
+    vec3 rvec = vec3(rad, rad, rad);
+    aabb box1 = aabb(cen1 - rvec, cen1 + rvec);
+    aabb box2 = aabb(cen2 - rvec, cen2 + rvec);
+    my.bbox = aabb(box1, box2);
+}
+
+@bounding_box: aabb -> sphere { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> sphere {
+    point3 center = my.is_moving ? my.center(r.time()) : my.center1;
+
+    vec3 oc = r.origin() - center;
+    num a = dot(r.direction(), r.direction());
+    num half_b = dot(oc, r.direction());
+    num c = dot(oc, oc) - my.radius * my.radius;
+    
+    num discriminant = half_b * half_b - a * c;
+    if (discriminant < 0) ret false;
+    num sqrtd = sqrt(discriminant);
+
+    ## Find the nearest root that lies in the acceptable range.
+    num root = (-half_b - sqrtd) / a;
+    if (!ray_t.surrounds(root)) {
+        root = (-half_b + sqrtd) / a;
+        if (!ray_t.surrounds(root))
+            ret false;
+    }
+
+    rec.t = root;
+    rec.p = r.at(rec.t);
+    vec3 outward_normal = (rec.p - center) / my.radius;
+    rec.set_face_normal(r, outward_normal);
+    rec.mat = my.mat;
+
+    num_ptr u;
+    num_ptr v;
+    get_sphere_uv(outward_normal, u, v);
+    rec.u = u.value;
+    rec.v = v.value;
+
+    ret true;
+}
+
+@center: point3 (time: num) -> sphere {
+    ## Linearly interpolate from center1 to center2 according to time, where t=0 yields
+    ## center1, and t=1 yields center2.
+    ret my.center1 + time * my.center_vec;
+}
+
+@get_sphere_uv (p: point3, u: num_ptr, v: num_ptr) {
+    ## p: a given point on the sphere of radius one, centered at the origin.
+    ## u: returned value [0,1] of angle around the Y axis from X=-1.
+    ## v: returned value [0,1] of angle from Y=-1 to Y=+1.
+    ##     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+    ##     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+    ##     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+    num theta = acos(-p.y());
+    num phi = atan2(-p.z(), p.x()) + pi;
+
+    u.value = phi / (2 * pi);
+    v.value = theta / pi;
+}

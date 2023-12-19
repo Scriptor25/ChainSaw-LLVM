@@ -1,0 +1,132 @@
+thing: hit_record {
+    p: point3,
+    normal: vec3,
+    mat: material,
+    t: num,
+    u: num,
+    v: num,
+    front_face: bool
+}
+
+@set (rec: hit_record) -> hit_record {
+    my.p = rec.p;
+    my.normal = rec.normal;
+    my.mat = rec.mat;
+    my.t = rec.t;
+    my.u = rec.u;
+    my.v = rec.v;
+    my.front_face = rec.front_face;
+}
+
+@set_face_normal (r: ray, outward_normal: vec3) -> hit_record {
+    ## Sets the hit record normal vector.
+    ## NOTE: the parameter `outward_normal` is assumed to have unit length.
+
+    my.front_face = dot(r.direction(), outward_normal) < 0;
+    my.normal = my.front_face ? outward_normal : -outward_normal;
+}
+
+
+thing: translate : hittable {
+    object: hittable,
+    offset: vec3,
+    bbox: aabb
+}
+
+$translate (p: hittable, displacement: vec3) {
+    my.object = p;
+    my.offset = displacement;
+    my.bbox = my.object.bounding_box() + my.offset;
+}
+
+@bounding_box: aabb -> translate { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> translate {
+    ## Move the ray backwards by the offset
+    ray offset_r = ray(r.origin() - my.offset, r.direction(), r.time());
+
+    ## Determine where (if any) an intersection occurs along the offset ray
+    if (!my.object.hit(offset_r, ray_t, rec))
+        ret false;
+
+    ## Move the intersection point forwards by the offset
+    rec.p += my.offset;
+
+    ret true;
+}
+
+
+thing: rotate_y : hittable {
+    object: hittable,
+    sin_theta: num,
+    cos_theta: num,
+    bbox: aabb
+}
+
+$rotate_y (p: hittable, angle: num) {
+    num radians = degrees_to_radians(angle);
+    my.sin_theta = sin(radians);
+    my.cos_theta = cos(radians);
+    my.object = p;
+    my.bbox = my.object.bounding_box();
+
+    point3 min = point3( infinity,  infinity,  infinity);
+    point3 max = point3(-infinity, -infinity, -infinity);
+
+    for (num i = 0; i < 2; i++) {
+        for (num j = 0; j < 2; j++) {
+            for (num k = 0; k < 2; k++) {
+                num x = i * my.bbox.x.max + (1 - i) * my.bbox.x.min;
+                num y = j * my.bbox.y.max + (1 - j) * my.bbox.y.min;
+                num z = k * my.bbox.z.max + (1 - k) * my.bbox.z.min;
+
+                num newx =  my.cos_theta * x + my.sin_theta * z;
+                num newz = -my.sin_theta * x + my.cos_theta * z;
+
+                vec3 tester = vec3(newx, y, newz);
+
+                for (num c = 0; c < 3; c++) {
+                    min.e(c, min(min.e(c), tester.e(c)));
+                    max.e(c, max(max.e(c), tester.e(c)));
+                }
+            }
+        }
+    }
+
+    my.bbox = aabb(min, max);
+}
+
+@bounding_box: aabb -> rotate_y { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> rotate_y {
+    ## Change the ray from world space to object space
+    point3 origin = r.origin().copy();
+    vec3 direction = r.direction().copy();
+
+    origin.e(0, my.cos_theta * r.origin().e(0) - my.sin_theta * r.origin().e(2));
+    origin.e(2, my.sin_theta * r.origin().e(0) + my.cos_theta * r.origin().e(2));
+
+    direction.e(0, my.cos_theta * r.direction().e(0) - my.sin_theta * r.direction().e(2));
+    direction.e(2, my.sin_theta * r.direction().e(0) + my.cos_theta * r.direction().e(2));
+
+    ray rotated_r = ray(origin, direction, r.time());
+
+    ## Determine where (if any) an intersection occurs in object space
+    if (!my.object.hit(rotated_r, ray_t, rec))
+        ret false;
+
+    ## Change the intersection point from object space to world space
+    point3 p = rec.p.copy();
+    p.e(0,  my.cos_theta * rec.p.e(0) + my.sin_theta * rec.p.e(2));
+    p.e(2, -my.sin_theta * rec.p.e(0) + my.cos_theta * rec.p.e(2));
+
+    ## Change the normal from object space to world space
+    vec3 normal = rec.normal.copy();
+    normal.e(0,  my.cos_theta * rec.normal.e(0) + my.sin_theta * rec.normal.e(2));
+    normal.e(2, -my.sin_theta * rec.normal.e(0) + my.cos_theta * rec.normal.e(2));
+
+    rec.p = p;
+    rec.normal = normal;
+
+    ret true;
+}

@@ -1,0 +1,56 @@
+num MAX = 4;
+num MAX_THREAD = 4;
+
+num[MAX][MAX] matA;
+num[MAX][MAX] matB;
+num[MAX][MAX] matC;
+num step_i = 0;
+
+@multi {
+    num i = step_i;
+    step_i++;
+
+    for (num j = 0; j < MAX; j++)
+        for (num k = 0; k < MAX; k++)
+            matC[i][j] += matA[i][k] * matB[k][j];
+}
+
+@main: num {
+
+    for (num i = 0; i < MAX; i++) {
+        for (num j = 0; j < MAX; j++) {
+            matA[i][j] = random() * 10;
+            matB[i][j] = random() * 10;
+        }
+    }
+
+    printf("Matrix A:%n");
+    for (num i = 0; i < MAX; i++) {
+        for (num j = 0; j < MAX; j++)
+            printf("%s ", matA[i][j]);
+        printf("%n");
+    }
+
+    printf("%nMatrix B:%n");
+    for (num i = 0; i < MAX; i++) {
+        for (num j = 0; j < MAX; j++)
+            printf("%s ", matB[i][j]);
+        printf("%n");
+    }
+
+    thrd[MAX_THREAD] threads;
+    for (num i = 0; i < MAX_THREAD; i++)
+        (threads[i] = thrd([](){ multi(); })).start();
+
+    for (num i = 0; i < MAX_THREAD; i++)
+        threads[i].join();
+    
+    printf("%nMultiplication of A and B:%n");
+    for (num i = 0; i < MAX; i++) {
+        for (num j = 0; j < MAX; j++)
+            printf("%s ", matC[i][j]);
+        printf("%n");
+    }
+
+    ret 0;
+}

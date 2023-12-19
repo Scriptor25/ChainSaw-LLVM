@@ -1,0 +1,96 @@
+thing: quad : hittable {
+    Q: point3,
+    u: vec3,
+    v: vec3,
+    mat: material,
+    bbox: aabb,
+    normal: vec3,
+    D: num,
+    w: vec3
+}
+
+$quad (Q: point3, u: vec3, v: vec3, m: material) {
+    my.Q = Q;
+    my.u = u;
+    my.v = v;
+    my.mat = m;
+
+    vec3 n = cross(u, v);
+    my.normal = unit_vector(n);
+    my.D = dot(my.normal, Q);
+    my.w = n / dot(n, n);
+
+    my.set_bounding_box();
+}
+
+@set_bounding_box -> quad {
+    my.bbox = aabb(my.Q, my.Q + my.u + my.v).pad();
+}
+
+@bounding_box: aabb -> quad { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> quad {
+    num denom = dot(my.normal, r.direction());
+
+    ## No hit if the ray is parallel to the plane.
+    if (abs(denom) < 1e-8)
+        ret false;
+
+    ## Return false if the hit point parameter t is outside the ray interval.
+    num t = (my.D - dot(my.normal, r.origin())) / denom;
+    if (!ray_t.contains(t))
+        ret false;
+
+    ## Determine the hit point lies within the planar shape using its plane coordinates.
+    point3 intersection = r.at(t);
+    vec3 planar_hitpt_vector = intersection - my.Q;
+    num alpha = dot(my.w, cross(planar_hitpt_vector, my.v));
+    num beta = dot(my.w, cross(my.u, planar_hitpt_vector));
+
+    if (!is_interior(alpha, beta, rec))
+        ret false;
+
+    ## Ray hits the 2D shape; set the rest of the hit record and return true.
+
+    rec.t = t;
+    rec.p = intersection;
+    rec.mat = my.mat;
+    rec.set_face_normal(r, my.normal);
+
+    ret true;
+}
+
+@is_interior: bool (a: num, b: num, rec: hit_record) {
+    ## Given the hit point in plane coordinates, return false if it is outside the
+    ## primitive, otherwise set the hit record UV coordinates and return true.
+
+    if ((a < 0) || (1 < a) || (b < 0) || (1 < b))
+        ret false;
+
+    rec.u = a;
+    rec.v = b;
+    ret true;
+}
+
+@box: hittable (a: point3, b: point3, mat: material) {
+    ## Returns the 3D box (six sides) that contains the two opposite vertices a & b.
+
+    hittable_list sides = hittable_list();
+
+    ## Construct the two opposite vertices with the minimum and maximum coordinates.
+    point3 min = point3(min(a.x(), b.x()), min(a.y(), b.y()), min(a.z(), b.z()));
+    point3 max = point3(max(a.x(), b.x()), max(a.y(), b.y()), max(a.z(), b.z()));
+
+    vec3 dx = vec3(max.x() - min.x(), 0, 0);
+    vec3 dy = vec3(0, max.y() - min.y(), 0);
+    vec3 dz = vec3(0, 0, max.z() - min.z());
+
+    sides.add(quad(point3(min.x(), min.y(), max.z()),  dx,  dy, mat)); ## front
+    sides.add(quad(point3(max.x(), min.y(), max.z()), -dz,  dy, mat)); ## right
+    sides.add(quad(point3(max.x(), min.y(), min.z()), -dx,  dy, mat)); ## back
+    sides.add(quad(point3(min.x(), min.y(), min.z()),  dz,  dy, mat)); ## left
+    sides.add(quad(point3(min.x(), max.y(), max.z()),  dx, -dz, mat)); ## top
+    sides.add(quad(point3(min.x(), min.y(), min.z()),  dx,  dz, mat)); ## bottom
+
+    ret sides;
+}

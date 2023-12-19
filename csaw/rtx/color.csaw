@@ -1,0 +1,30 @@
+alias color : vec3;
+$color { my = vec3(); }
+$color (r: num, g: num, b: num) { my = vec3(r, g, b); }
+
+interval intensity = interval(0.000, 0.999);
+
+@write_color (output: img, i: num, j: num, pixel_color: color, samples_per_pixel: num) {
+    num r = pixel_color.x();
+    num g = pixel_color.y();
+    num b = pixel_color.z();
+
+    ## Divide the color by the number of samples.
+    num scale = 1.0 / samples_per_pixel;
+    r *= scale;
+    g *= scale;
+    b *= scale;
+
+    ## Apply the linear to gamma transform.
+    r = linear_to_gamma(r);
+    g = linear_to_gamma(g);
+    b = linear_to_gamma(b);
+
+    ## Write the translated [0,255] value of each color component.
+    output.set(i, j,
+        0xff << 24 |
+        (floor(256 * intensity.clamp(r)) & 0xff) << 16 |
+        (floor(256 * intensity.clamp(g)) & 0xff) << 8 |
+        (floor(256 * intensity.clamp(b)) & 0xff)
+    );
+}

@@ -1,0 +1,38 @@
+thing: hittable_list : hittable {
+    objects: list,
+    bbox: aabb
+}
+
+$hittable_list {
+    my.objects = list();
+    my.bbox = aabb();
+}
+
+$hittable_list (object: hittable) {
+    my.objects = list();
+    my.bbox = aabb();
+    my.add(object);
+}
+
+@add (object: hittable) -> hittable_list {
+    my.objects.add(object);
+    my.bbox = aabb(my.bbox, object.bounding_box());
+}
+
+@bounding_box: aabb -> hittable_list { ret my.bbox; }
+
+@hit: bool (r: ray, ray_t: interval, rec: hit_record) -> hittable_list {
+    hit_record temp_rec;
+    bool hit_anything = false;
+    num closest_so_far = ray_t.max;
+
+    for (num i = 0; i < my.objects.size(); i++) {
+        if (my.objects.get(i).hit(r, interval(ray_t.min, closest_so_far), temp_rec)) {
+            hit_anything = true;
+            closest_so_far = temp_rec.t;
+            rec.set(temp_rec);
+        }
+    }
+
+    ret hit_anything;
+}

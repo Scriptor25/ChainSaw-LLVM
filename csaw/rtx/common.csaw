@@ -1,0 +1,52 @@
+thing: num_ptr {
+    value: num
+}
+
+## Constants
+num infinity = infinity();
+num pi = 3.1415926535897932385;
+
+## Utility Functions
+@min: num (a: num, b: num) {
+    ret a < b ? a : b;
+}
+
+@max: num (a: num, b: num) {
+    ret a > b ? a : b;
+}
+
+@degrees_to_radians: num (degrees: num) {
+    ret degrees * pi / 180.0;
+}
+
+@random: num (min: num, max: num) {
+    ## Returns a random real in [min,max).
+    ret min + (max - min) * random();
+}
+
+@random_int: num (min: num, max: num) {
+    ## Returns a random integer in [min,max].
+    ret floor(random(min, max + 1));
+}
+
+@linear_to_gamma: num (linear_component: num){
+    ret sqrt(linear_component);
+}
+
+## Includes
+inc "../std/pool.csaw";
+inc "bool.csaw";
+inc "interval.csaw";
+inc "vec3.csaw";
+inc "color.csaw";
+inc "perlin.csaw";
+inc "texture.csaw";
+inc "ray.csaw";
+inc "aabb.csaw";
+inc "material.csaw";
+inc "hittable.csaw";
+inc "sphere.csaw";
+inc "hittable_list.csaw";
+inc "quad.csaw";
+inc "bvh.csaw";
+inc "camera.csaw";

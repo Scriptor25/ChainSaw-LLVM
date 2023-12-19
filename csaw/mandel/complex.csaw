@@ -1,0 +1,132 @@
+thing: complex {
+    real: num,
+    imaginary: num,
+}
+
+$complex { my.real = 0; my.imaginary = 0; }
+$complex (real: num, imaginary: num) { my.real = real; my.imaginary = imaginary; }
+
+@(+): complex (z: complex) -> complex {
+    my.real += z.real;
+    my.imaginary += z.imaginary;
+    ret my;
+}
+
+@(-): complex (z: complex) -> complex {
+    my.real -= z.real;
+    my.imaginary -= z.imaginary;
+    ret my;
+}
+
+@(*): complex (z: complex) -> complex {
+    num real = my.real * z.real - my.imaginary * z.imaginary;
+    num imaginary = my.real * z.imaginary + my.imaginary * z.real;
+
+    my.real = real;
+    my.imaginary = imaginary;
+
+    ret my;
+}
+
+@(/): complex (z: complex) -> complex {
+    my *= z.conjugate();
+    num div = 1 / pow(z.mod(), 2);
+
+    my.real *= div;
+    my.imaginary *= div;
+
+    ret my;
+}
+
+@(+): complex (z1: complex, z2: complex) {
+    ret complex(z1.real + z2.real, z1.imaginary + z2.imaginary);
+}
+
+@(-): complex (z1: complex, z2: complex) {
+    ret complex(z1.real - z2.real, z1.imaginary - z2.imaginary);
+}
+
+@(*): complex (z1: complex, z2: complex) {
+    num real = z1.real * z2.real - z1.imaginary * z2.imaginary;
+    num imaginary = z1.real * z2.imaginary + z1.imaginary * z2.real;
+
+    ret complex(real, imaginary);
+}
+
+@(/): complex (z1: complex, z2: complex) {
+    complex res = z1 * z2.conjugate();
+    num div = 1 / pow(z2.mod(), 2);
+
+    ret complex(res.real * div, res.imaginary * div);
+}
+
+@conjugate: complex -> complex {
+    ret complex(my.real, -my.imaginary);
+}
+
+@mod: num -> complex {
+    ret sqrt(pow(my.real, 2) + pow(my.imaginary, 2));
+}
+
+@square: complex -> complex {
+    num real = my.real * my.real - my.imaginary * my.imaginary;
+    num imaginary = 2 * my.real * my.imaginary;
+    ret complex(real, imaginary);
+}
+
+@out (c: complex) {
+    printf("%f %s", c.real, (c.imaginary < 0 ? "" : "+ ") + c.imaginary + "i");
+}
+
+@exp: complex (z: complex) {
+    num a = z.real;
+    num b = z.imaginary;
+    num r = exp(a);
+    a = r * cos(b);
+    b = r * sin(b);
+    ret complex(a, b);
+}
+
+@sin: complex (z: complex) {
+    num x = exp(z.imaginary);
+    num x_inv = 1 / x;
+    num r = sin(z.real) * (x + x_inv) / 2;
+    num i = cos(z.real) * (x - x_inv) / 2;
+    ret complex(r, i);
+}
+
+@cos: complex (z: complex) {
+    num x = exp(z.imaginary);
+    num x_inv = 1 / x;
+    num r = cos(z.real) * (x + x_inv) / 2;
+    num i = -sin(z.real) * (x - x_inv) / 2;
+    ret complex(r, i);
+}
+
+@tan: complex (z: complex) {
+    ret sin(z) / cos(z);
+}
+
+@cot: complex (z: complex) {
+    ret complex(1, 0) / tan(z);
+}
+
+@sec: complex (z: complex) {
+    ret complex(1, 0) / cos(z);
+}
+
+@cosec: complex (z: complex) {
+    ret complex(1, 0) / sin(z);
+}
+
+@arg: num -> complex {
+    ret atan2(my.imaginary, my.real);
+}
+
+@inverse: complex -> complex {
+    ret complex(1, 0) / my;
+}
+
+@abs: num -> complex {
+    ret sqrt(my.real * my.real + my.imaginary * my.imaginary);
+}

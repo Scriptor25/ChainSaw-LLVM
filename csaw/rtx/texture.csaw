@@ -1,0 +1,87 @@
+thing: solid_color : texture {
+    color_value: color
+}
+
+$solid_color (c: color) {
+    my.color_value = c;
+}
+
+$solid_color (red: num, green: num, blue: num) {
+    my.color_value = color(red, green, blue);
+}
+
+@value: color (u: num, v: num, p: point3) -> solid_color {
+    ret my.color_value;
+}
+
+
+thing: checker_texture : texture {
+    inv_scale: num,
+    even: texture,
+    odd: texture
+}
+
+$checker_texture (scale: num, even: texture, odd: texture) {
+    my.inv_scale = 1 / scale;
+    my.even = even;
+    my.odd = odd;
+}
+
+$checker_texture (scale: num, even: color, odd: color) {
+    my.inv_scale = 1 / scale;
+    my.even = solid_color(even);
+    my.odd = solid_color(odd);
+}
+
+@value: color (u: num, v: num, p: point3) -> checker_texture {
+    num xInteger = floor(my.inv_scale * p.x());
+    num yInteger = floor(my.inv_scale * p.y());
+    num zInteger = floor(my.inv_scale * p.z());
+
+    bool isEven = (xInteger + yInteger + zInteger) % 2 == 0;
+
+    ret isEven ? my.even.value(u, v, p) : my.odd.value(u, v, p);
+}
+
+
+thing: image_texture : texture {
+    image: img
+}
+
+$image_texture (filename: str) {
+    my.image = img(filename);
+}
+
+@value: color (u: num, v: num, p: point3) -> image_texture {
+    ## If we have no texture data, then return solid cyan as a debugging aid.
+    if (my.image.getHeight() <= 0) ret color(0, 1, 1);
+
+    ## Clamp input texture coordinates to [0,1] x [1,0]
+    u = zero_one.clamp(u);
+    v = 1.0 - zero_one.clamp(v);  ## Flip V to image coordinates
+
+    num i = floor(u * my.image.getWidth());
+    num j = floor(v * my.image.getHeight());
+
+    num color_scale = 1.0 / 255.0;
+    ret color(
+        color_scale * my.image.getRed(i, j),
+        color_scale * my.image.getGreen(i, j),
+        color_scale * my.image.getBlue(i, j));
+}
+
+
+thing: noise_texture : texture {
+    noise: perlin,
+    scale: num
+}
+
+$noise_texture (sc: num) {
+    my.noise = perlin();
+    my.scale = sc;
+}
+
+@value: color (u: num, v: num, p: point3) -> noise_texture {
+    point3 s = my.scale * p;
+    ret color(1, 1, 1) * 0.5 * (1 + sin(s.z() + 10 * my.noise.turb(s)));
+}
