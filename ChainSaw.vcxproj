@@ -127,12 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\ast\ast.h" />
     <ClInclude Include="src\csaw.h" />
     <ClInclude Include="src\parser\parser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ast\ast.cpp" />
+    <ClCompile Include="src\ast\asttype.cpp" />
     <ClCompile Include="src\csaw.cpp" />
+    <ClCompile Include="src\parser\exprs.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
+    <ClCompile Include="src\parser\stmts.cpp" />
     <ClCompile Include="src\parser\token.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
