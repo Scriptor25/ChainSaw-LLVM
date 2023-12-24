@@ -84,8 +84,13 @@ std::shared_ptr<csaw::ForStmt> csaw::Parser::NextForStmt(bool end)
 		begin = NextStmt(true);
 	else
 		Next(); // skip ;
-	condition = NextExpr();
-	ExpectAndNext(";"); // skip ;
+	if (!At(";"))
+	{
+		condition = NextExpr();
+		ExpectAndNext(";"); // skip ;
+	}
+	else
+		Next(); // skip ;
 	if (!At(")"))
 		loop = NextStmt(false);
 	ExpectAndNext(")"); // skip )

@@ -1,15 +1,27 @@
 #include "parser.h"
+
+#include <graphviz/gvc.h>
 #include <sstream>
 
 void csaw::Parse(std::istream& stream)
 {
+	// auto gvc = gvContext();
+	// auto G = agopen((char*)"AST", Agdesc_t{ 1,1,1,1,0,1,1 }, nullptr);
+
 	Parser parser(stream);
 	parser.Next();
 	while (!parser.AtEof())
 	{
 		auto stmt = parser.NextStmt(true);
+		// *stmt.get() >> G;
 		std::cout << stmt << std::endl;
 	}
+
+	// gvLayout(gvc, G, "dot");
+	// gvRenderFilename(gvc, G, "svg", "output.svg");
+	// gvFreeLayout(gvc, G);
+	// agclose(G);
+	// gvFreeContext(gvc);
 }
 
 int csaw::Parser::read()

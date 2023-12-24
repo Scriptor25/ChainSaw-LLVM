@@ -1,5 +1,6 @@
 #pragma once
 
+#include <graphviz/gvc.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -25,6 +26,8 @@ namespace csaw
 		static std::shared_ptr<ASTArrayType> Get(const std::string& name, const size_t size);
 		static std::shared_ptr<ASTArrayType> Get(const std::shared_ptr<ASTType>& type, const size_t size);
 
+		virtual Agnode_t* operator>>(Agraph_t* g) const;
+
 	protected:
 		ASTType(const std::string& name)
 			: Name(name) {}
@@ -38,6 +41,8 @@ namespace csaw
 		ASTArrayType(const std::shared_ptr<ASTType>& type, const size_t size)
 			: ASTType(type->Name), Type(type), Size(size) {}
 
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<ASTType> Type;
 		const size_t Size;
 	};
@@ -47,6 +52,8 @@ namespace csaw
 		ASTParameter(const std::string& name, const std::shared_ptr<ASTType>& type)
 			: Name(name), Type(type) {}
 
+		Agnode_t* operator>>(Agraph_t* g) const;
+
 		const std::string Name;
 		const std::shared_ptr<ASTType> Type;
 	};
@@ -54,17 +61,26 @@ namespace csaw
 	struct Stmt
 	{
 		virtual ~Stmt() {}
+
+		virtual std::ostream& operator>>(std::ostream& out) const = 0;
+		virtual Agnode_t* operator>>(Agraph_t* g) const = 0;
 	};
 
 	struct Expr : Stmt
 	{
 		virtual ~Expr() {}
+
+		virtual std::ostream& operator>>(std::ostream& out) const = 0;
+		virtual Agnode_t* operator>>(Agraph_t* g) const = 0;
 	};
 
 	struct AliasStmt : Stmt
 	{
 		AliasStmt(const std::string& alias, const std::shared_ptr<ASTType>& origin)
 			: Alias(alias), Origin(origin) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::string Alias;
 		const std::shared_ptr<ASTType> Origin;
@@ -75,6 +91,9 @@ namespace csaw
 		EnclosedStmt(const std::vector<std::shared_ptr<Stmt>>& body)
 			: Body(body) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::vector<std::shared_ptr<Stmt>> Body;
 	};
 
@@ -82,6 +101,9 @@ namespace csaw
 	{
 		ForStmt(const std::shared_ptr<Stmt>& begin, const std::shared_ptr<Expr>& condition, const std::shared_ptr<Stmt>& loop, const std::shared_ptr<Stmt>& body)
 			: Begin(begin), Condition(condition), Loop(loop), Body(body) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::shared_ptr<Stmt> Begin;
 		const std::shared_ptr<Expr> Condition;
@@ -93,6 +115,9 @@ namespace csaw
 	{
 		FunStmt(const bool is_constructor, const std::string& name, const std::shared_ptr<ASTType>& ret_type, const std::vector<ASTParameter>& parameters, const std::string& var_arg, const std::shared_ptr<ASTType>& member_of, const std::shared_ptr<EnclosedStmt>& body)
 			: IsConstructor(is_constructor), Name(name), RetType(ret_type), Parameters(parameters), VarArg(var_arg), MemberOf(member_of), Body(body) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const bool IsConstructor;
 		const std::string Name;
@@ -108,6 +133,9 @@ namespace csaw
 		IfStmt(const std::shared_ptr<Expr>& condition, const std::shared_ptr<Stmt>& then, const std::shared_ptr<Stmt>& else_)
 			: Condition(condition), Then(then), Else(else_) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<Expr> Condition;
 		const std::shared_ptr<Stmt> Then;
 		const std::shared_ptr<Stmt> Else;
@@ -118,6 +146,9 @@ namespace csaw
 		IncStmt(const std::string& path)
 			: Path(path) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::string Path;
 	};
 
@@ -126,6 +157,9 @@ namespace csaw
 		RetStmt(const std::shared_ptr<Expr >& value)
 			: Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<Expr> Value;
 	};
 
@@ -133,6 +167,9 @@ namespace csaw
 	{
 		ThingStmt(const std::string& name, const std::string& group, const std::vector<ASTParameter>& fields)
 			: Name(name), Group(group), Fields(fields) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::string Name;
 		const std::string Group;
@@ -144,6 +181,9 @@ namespace csaw
 		VarStmt(const std::shared_ptr<ASTType>& type, const std::string& name, const std::shared_ptr<Expr>& value)
 			: Type(type), Name(name), Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<ASTType> Type;
 		const std::string Name;
 		const std::shared_ptr<Expr> Value;
@@ -154,6 +194,9 @@ namespace csaw
 		WhileStmt(const std::shared_ptr<Expr >& condition, const std::shared_ptr<Stmt>& body)
 			: Condition(condition), Body(body) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<Expr> Condition;
 		const std::shared_ptr<Stmt> Body;
 	};
@@ -163,6 +206,9 @@ namespace csaw
 		AssignExpr(const std::shared_ptr<Expr>& object, const std::shared_ptr<Expr>& value)
 			: Object(object), Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<Expr> Object;
 		const std::shared_ptr<Expr> Value;
 	};
@@ -171,6 +217,9 @@ namespace csaw
 	{
 		BinExpr(const std::shared_ptr<Expr>& left, const std::shared_ptr<Expr>& right, const std::string& operator_)
 			: Left(left), Operator(operator_), Right(right) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::shared_ptr<Expr> Left;
 		const std::string Operator;
@@ -182,6 +231,9 @@ namespace csaw
 		CallExpr(const std::shared_ptr<Expr>& function, const std::vector<std::shared_ptr<Expr>>& arguments)
 			: Function(function), Arguments(arguments) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::shared_ptr<Expr> Function;
 		const std::vector<std::shared_ptr<Expr>> Arguments;
 	};
@@ -191,6 +243,9 @@ namespace csaw
 		ChrExpr(const char value)
 			: Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const char Value;
 	};
 
@@ -198,6 +253,9 @@ namespace csaw
 	{
 		ConExpr(const std::shared_ptr<Expr>& condition, const std::shared_ptr<Expr>& then, const std::shared_ptr<Expr>& else_)
 			: Condition(condition), Then(then), Else(else_) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::shared_ptr<Expr> Condition;
 		const std::shared_ptr<Expr> Then;
@@ -209,6 +267,9 @@ namespace csaw
 		IdExpr(const std::string& value)
 			: Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::string Value;
 	};
 
@@ -216,6 +277,9 @@ namespace csaw
 	{
 		IndexExpr(const std::shared_ptr<Expr>& object, const std::shared_ptr<Expr>& index)
 			: Object(object), Index(index) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::shared_ptr<Expr> Object;
 		const std::shared_ptr<Expr> Index;
@@ -226,6 +290,9 @@ namespace csaw
 		LambdaExpr(const std::vector<std::shared_ptr<IdExpr>>& passed, const std::vector<ASTParameter>& parameters, const std::shared_ptr<Stmt>& body)
 			: Passed(passed), Parameters(parameters), Body(body) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::vector<std::shared_ptr<IdExpr>> Passed;
 		const std::vector<ASTParameter> Parameters;
 		const std::shared_ptr<Stmt> Body;
@@ -235,6 +302,9 @@ namespace csaw
 	{
 		MemExpr(const std::shared_ptr<Expr>& object, const std::string& member)
 			: Object(object), Member(member) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::shared_ptr<Expr> Object;
 		const std::string Member;
@@ -251,6 +321,9 @@ namespace csaw
 		NumExpr(const std::string& value, int radix)
 			: Value(std::stol(value, nullptr, radix)) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const double Value;
 	};
 
@@ -259,6 +332,9 @@ namespace csaw
 		StrExpr(const std::string& value)
 			: Value(value) {}
 
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
+
 		const std::string Value;
 	};
 
@@ -266,6 +342,9 @@ namespace csaw
 	{
 		UnExpr(const std::string& operator_, const std::shared_ptr<Expr>& value)
 			: Operator(operator_), Value(value) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+		Agnode_t* operator>>(Agraph_t* g) const override;
 
 		const std::string Operator;
 		const std::shared_ptr<Expr> Value;
@@ -276,28 +355,6 @@ namespace csaw
 	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ASTArrayType>& type);
 
 	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<Stmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<AliasStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<EnclosedStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ForStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<FunStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<IfStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<IncStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<RetStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ThingStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<VarStmt>& stmt);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<WhileStmt>& stmt);
-
 	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<Expr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<AssignExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<BinExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<CallExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ChrExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<ConExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<IdExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<IndexExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<LambdaExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<MemExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<NumExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<StrExpr>& expr);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<UnExpr>& expr);
+
 }
