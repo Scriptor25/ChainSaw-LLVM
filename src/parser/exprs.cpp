@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <iostream>
+
 std::shared_ptr<csaw::Expr> csaw::Parser::NextExpr()
 {
 	return NextConExpr();

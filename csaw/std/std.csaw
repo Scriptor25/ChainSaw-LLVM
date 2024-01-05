@@ -1,0 +1,6 @@
+@random: num;
+@floor: num (x: num);
+@printf (fmt: str) $args;
+@readf: str (fmt: str) $args;
+@num: num (x: str);
+@strcmp: num (a: str, b: str);

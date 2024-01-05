@@ -1,13 +1,12 @@
 #pragma once
 
-#include "../ast/ast.h"
-
-#include <iostream>
-#include <vector>
+#include "../compiler/compiler.h"
 
 namespace csaw
 {
-	void Parse(std::istream& stream);
+	bool Parse(const std::shared_ptr<Environment>& env, const std::string& filename);
+	bool Parse(const std::shared_ptr<Environment>& env, std::istream& stream);
+	bool ParseInc(const std::shared_ptr<Environment>& env, const std::filesystem::path& filepath);
 
 	enum TokenType
 	{
@@ -22,12 +21,9 @@ namespace csaw
 	struct Token
 	{
 		Token(TokenType type, const std::string& value, int line)
-			: Type(type), Value(value), Line(line)
-		{}
-
+			: Type(type), Value(value), Line(line) {}
 		Token(int line)
-			: Token(TOKEN_EOF, "", line)
-		{}
+			: Token(TOKEN_EOF, "", line) {}
 
 		const TokenType Type;
 		const std::string Value;
@@ -42,8 +38,7 @@ namespace csaw
 	{
 	public:
 		Parser(std::istream& stream)
-			: m_Stream(stream)
-		{}
+			: m_Stream(stream) {}
 
 	private:
 		int read();

@@ -1,9 +1,19 @@
 #pragma once
 
+#include <map>
 #include <string>
+#include <vector>
 
 namespace csaw
 {
-	void Shell(const std::string& exec);
-	bool Run(const std::string& exec, const std::string& filename, int argc, const char** argv);
+	int Shell(
+		const std::string& path,
+		const std::vector<std::string>& flags,
+		const std::map<std::string, std::string>& options);
+	int Run(
+		const std::string& path,
+		const std::string& filename,
+		const std::vector<std::string>& args,
+		const std::vector<std::string>& flags,
+		const std::map<std::string, std::string>& options);
 }

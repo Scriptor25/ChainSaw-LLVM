@@ -1,35 +1,69 @@
 #include "csaw.h"
 #include "parser/parser.h"
 
-#include <fstream>
-#include <sstream>
-#include <stdio.h>
+#include <iostream>
 
 int main(int argc, const char** argv)
 {
-	std::string exec = argv[0];
-	if (argc == 1)
+	std::string path = argv[0]; // exe path
+	std::string filename;
+	std::vector<std::string> args;
+	std::vector<std::string> flags; // -...
+	std::map<std::string, std::string> options; // --... ...
+
+	std::string nextOption;
+
+	for (int i = 1; i < argc; i++)
 	{
-		csaw::Shell(exec);
+		std::string arg = argv[i];
+
+		if (!nextOption.empty())
+		{
+			options[nextOption] = arg;
+			nextOption.clear();
+			continue;
+		}
+
+		if (arg.find("--") == 0) // option
+		{
+			nextOption = arg.substr(2);
+			continue;
+		}
+
+		if (arg.find("-") == 0) // flag
+		{
+			flags.push_back(arg.substr(1));
+			continue;
+		}
+
+		if (filename.empty())
+		{
+			filename = arg;
+			continue;
+		}
+
+		args.push_back(arg);
+	}
+
+	if (filename.empty())
+	{
+		csaw::Shell(path, flags, options);
 		return 0;
 	}
 
-	if (argv[1] == std::string("--help") || argv[1] == std::string("-h"))
-	{
-		std::cout << "shell: no args" << std::endl;
-		std::cout << "run file: <filename> <args>..." << std::endl;
-		return 0;
-	}
-
-	if (!csaw::Run(exec, argv[1], argc - 2, argv + 2))
-		return 1;
-
-	return 0;
+	return csaw::Run(path, filename, args, flags, options);
 }
 
-void csaw::Shell(const std::string& exec)
+int csaw::Shell(
+	const std::string& path,
+	const std::vector<std::string>& flags,
+	const std::map<std::string, std::string>& options)
 {
 	std::string input;
+
+	Environment::InitEnvironment();
+	auto env = std::make_shared<Environment>(path);
+
 	while (true)
 	{
 		std::cout << ">> ";
@@ -44,16 +78,31 @@ void csaw::Shell(const std::string& exec)
 		}
 
 		std::stringstream stream(input);
-		csaw::Parse(stream);
+		csaw::Parse(env, stream);
+
+		Environment::Module().print(llvm::outs(), nullptr);
 	}
+
+	return 0;
 }
 
-bool csaw::Run(const std::string& exec, const std::string& filename, int argc, const char** argv)
+int csaw::Run(
+	const std::string& path,
+	const std::string& filename,
+	const std::vector<std::string>& args,
+	const std::vector<std::string>& flags,
+	const std::map<std::string, std::string>& options)
 {
-	std::ifstream stream(filename);
-	if (!stream)
-		return false;
+	Environment::InitEnvironment();
+	auto env = std::make_shared<Environment>(filename);
 
-	csaw::Parse(stream);
-	return true;
+	if (!csaw::Parse(env, filename))
+		return 1;
+
+	Environment::Module().setSourceFileName(filename);
+	Environment::Module().print(llvm::outs(), nullptr);
+	auto code = Environment::Run();
+	std::cout << "Exit Code " << code << std::endl;
+
+	return code;
 }

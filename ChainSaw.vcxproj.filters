@@ -18,7 +18,16 @@
     <ClCompile Include="src\ast\ast.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\ast\astexprs.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ast\aststmts.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="src\ast\asttype.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\compiler.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\parser\exprs.cpp">
@@ -36,10 +45,10 @@
     <ClCompile Include="src\csaw.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\ast\aststmts.cpp">
+    <ClCompile Include="src\compiler\operators.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\ast\astexprs.cpp">
+    <ClCompile Include="src\compiler\environment.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -54,6 +63,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\csaw.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\lang\csawstd.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,27 +1,50 @@
 #include "parser.h"
 
-#include <graphviz/gvc.h>
-#include <sstream>
+#include <fstream>
+#include <iostream>
 
-void csaw::Parse(std::istream& stream)
+bool csaw::Parse(const std::shared_ptr<Environment>& env, const std::string& filename)
 {
-	// auto gvc = gvContext();
-	// auto G = agopen((char*)"AST", Agdesc_t{ 1,1,1,1,0,1,1 }, nullptr);
+	std::ifstream stream(filename);
+	if (!stream)
+		return false;
+
+	return Parse(env, stream);
+}
+
+bool csaw::Parse(const std::shared_ptr<Environment>& env, std::istream& stream)
+{
+	Parser parser(stream);
+	parser.Next();
+	while (!parser.AtEof())
+	{
+		auto stmt = parser.NextStmt(true);
+		GenIR(env, stmt);
+	}
+
+	return true;
+}
+
+bool csaw::ParseInc(const std::shared_ptr<Environment>& env, const std::filesystem::path& filepath)
+{
+	std::ifstream stream(filepath);
+	if (!stream)
+		return false;
+
+	auto prev = env->Path();
+	env->Path(filepath);
 
 	Parser parser(stream);
 	parser.Next();
 	while (!parser.AtEof())
 	{
 		auto stmt = parser.NextStmt(true);
-		// *stmt.get() >> G;
-		std::cout << stmt << std::endl;
+		GenIR(env, stmt);
 	}
 
-	// gvLayout(gvc, G, "dot");
-	// gvRenderFilename(gvc, G, "svg", "output.svg");
-	// gvFreeLayout(gvc, G);
-	// agclose(G);
-	// gvFreeContext(gvc);
+	env->Path(prev);
+
+	return true;
 }
 
 int csaw::Parser::read()
@@ -77,11 +100,9 @@ std::shared_ptr<csaw::Token> csaw::Parser::Next()
 {
 	int c = read();
 
-	while (isignore(c)) {
+	for (; isignore(c); c = read())
 		if (c == '\n')
 			m_Line++;
-		c = read();
-	}
 
 	if (c < 0)
 		return m_Current = std::make_shared<Token>(m_Line);
@@ -92,6 +113,8 @@ std::shared_ptr<csaw::Token> csaw::Parser::Next()
 		while ((c = read()) != LIMIT && c >= 0)
 			if (c == '\n')
 				m_Line++;
+		if (LIMIT == '\n')
+			m_Line++;
 		return Next();
 	}
 
@@ -132,6 +155,7 @@ std::shared_ptr<csaw::Token> csaw::Parser::Next()
 			if (c == '\\') {
 				value += escape(read());
 				c = read();
+				continue;
 			}
 			value += c;
 			c = read();
