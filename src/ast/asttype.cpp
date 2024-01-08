@@ -2,11 +2,6 @@
 
 #include <map>
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetNull()
-{
-	return Get("");
-}
-
 std::shared_ptr<csaw::ASTType> csaw::ASTType::GetAny()
 {
 	return Get("any");

@@ -102,9 +102,9 @@ std::shared_ptr<csaw::ForStmt> csaw::Parser::NextForStmt(bool end)
 
 std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
 {
-	bool constructor;
-	std::string name, vararg;
-	std::shared_ptr<ASTType> type = ASTType::GetNull(), member = ASTType::GetNull();
+	bool constructor, vararg;
+	std::string name;
+	std::shared_ptr<ASTType> type, member;
 	std::vector<ASTParameter> parameters;
 	std::shared_ptr<EnclosedStmt> body;
 
@@ -114,31 +114,38 @@ std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
 	else
 		ExpectAndNext("@"); // skip @
 
-	if (At("(")) { // override operator
+	if (At("(")) // override operator
+	{
 		Next(); // skip (
 		name = "";
-		while (!AtEof() && !At(")")) { // at least one character
+		while (!AtEof() && !At(")")) // at least one character
+		{
 			name += m_Current->Value;
 			ExpectAndNext(TOKEN_OPERATOR); // skip operator
 		}
 		ExpectAndNext(")"); // skip )
 	}
-	else {
+	else
+	{
 		name = m_Current->Value;
 		ExpectAndNext(TOKEN_IDENTIFIER); // skip name
 	}
 
-	if (constructor) {
+	if (constructor)
+	{
 		type = ASTType::Get(name);
 	}
-	else if (At(":")) {
+	else if (At(":"))
+	{
 		Next(); // skip :
 		type = NextType();
 	}
 
-	if (At("(")) {
+	if (At("("))
+	{
 		Next(); // skip (
-		while (!AtEof() && !At(")")) {
+		while (!AtEof() && !At(")"))
+		{
 			parameters.push_back(NextParameter());
 			if (!At(")"))
 				ExpectAndNext(","); // skip ,
@@ -146,19 +153,19 @@ std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
 		ExpectAndNext(")"); // skip )
 	}
 
-	if (At("$")) {
-		Next(); // skip $
-		vararg = m_Current->Value;
-		ExpectAndNext(TOKEN_IDENTIFIER); // skip vararg name
-	}
+	vararg = At("?");
+	if (vararg)
+		Next(); // skip ?
 
-	if (At("-")) {
+	if (At("-"))
+	{
 		Next(); // skip -
 		ExpectAndNext(">"); // skip >
 		member = NextType();
 	}
 
-	if (At(";")) {
+	if (At(";"))
+	{
 		Next(); // skip ;
 		return std::make_shared<FunStmt>(constructor, name, type, parameters, vararg, member, body);
 	}
@@ -180,7 +187,8 @@ std::shared_ptr<csaw::IfStmt> csaw::Parser::NextIfStmt()
 
 	then = NextStmt(true);
 
-	if (At("else")) {
+	if (At("else"))
+	{
 		Next(); // skip "else"
 		else_ = NextStmt(true);
 	}
@@ -224,19 +232,22 @@ std::shared_ptr<csaw::ThingStmt> csaw::Parser::NextThingStmt(bool end)
 	name = m_Current->Value;
 	ExpectAndNext(TOKEN_IDENTIFIER); // skip name
 
-	if (At(":")) {
+	if (At(":"))
+	{
 		Next(); // skip :
 		group = m_Current->Value;
 		ExpectAndNext(TOKEN_IDENTIFIER);
 	}
 
-	if (At(";")) {
+	if (At(";"))
+	{
 		Next(); // skip ;
 		return std::make_shared<ThingStmt>(name, group, fields);
 	}
 
 	ExpectAndNext("{"); // skip {
-	while (!AtEof() && !At("}")) {
+	while (!AtEof() && !At("}"))
+	{
 		fields.push_back(NextParameter());
 		if (!At("}"))
 			ExpectAndNext(","); // skip ,
@@ -263,8 +274,8 @@ std::shared_ptr<csaw::WhileStmt> csaw::Parser::NextWhileStmt(bool end)
 
 std::shared_ptr<csaw::VarStmt> csaw::Parser::NextVarStmt(const std::shared_ptr<Expr>& expr, bool end)
 {
-	if ((std::dynamic_pointer_cast<IdExpr>(expr) || std::dynamic_pointer_cast<IndexExpr>(expr)) && At(TOKEN_IDENTIFIER)) {
-
+	if ((std::dynamic_pointer_cast<IdExpr>(expr) || std::dynamic_pointer_cast<IndexExpr>(expr)) && At(TOKEN_IDENTIFIER))
+	{
 		std::shared_ptr<ASTType> type;
 		std::string name;
 		std::shared_ptr<Expr> value;
@@ -273,7 +284,8 @@ std::shared_ptr<csaw::VarStmt> csaw::Parser::NextVarStmt(const std::shared_ptr<E
 		name = m_Current->Value;
 		ExpectAndNext(TOKEN_IDENTIFIER); // skip name
 
-		if (At(";")) {
+		if (At(";"))
+		{
 			Next();
 			return std::make_shared<VarStmt>(type, name, value);
 		}

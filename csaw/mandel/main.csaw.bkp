@@ -3,12 +3,14 @@ inc "complex.csaw";
 
 num MAX_ITER = 100;
 num SAMPLES  =  10;
-num WIDTH    =  80;
-num HEIGHT   =  40;
-str LUT      = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+num WIDTH    = 512;
+num HEIGHT   = 512;
 
 @mandel: num (z0: complex, max: num);
-@lookupChr: chr (p: num);
+
+thing: bar;
+$bar (max: num);
+@on_progress -> bar;
 
 @main: num {
 
@@ -16,26 +18,30 @@ str LUT      = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:
     num yc = num(readf("yc: "));     ##    0
     num size = num(readf("size: ")); ##    2
 
-    printf("Generating Mandelbrot:\r\n");
+    img output = img(WIDTH, HEIGHT);
+    bar b = bar(HEIGHT);
+
+    printf("Starting...");
     for (num j = 0; j < HEIGHT; j++) {
         for (num i = 0; i < WIDTH; i++) {
             num n = 0;
-            for (num s = 0; s < SAMPLES; s++) {
+            parallel(0, SAMPLES, [xc, yc, size, j, i, n](s: num) {
                 num x0 = xc - size / 2 + size * (i + random() - 0.5) / WIDTH;
                 num y0 = yc - size / 2 + size * (j + random() - 0.5) / HEIGHT;
                 ## num x0 = xc - size / 2 + size * i / WIDTH;
                 ## num y0 = yc - size / 2 + size * j / HEIGHT;
                 complex z0 = complex(x0, y0);
-                num m = mandel(z0, MAX_ITER);
-                n += m;
-            }
-            n /= (SAMPLES * MAX_ITER);
-            printf("%c", lookupChr(n));
+                n += mandel(z0, MAX_ITER);
+            });
+            n = n / (SAMPLES * MAX_ITER);
+            num grey = floor(n * 255.999);
+            output.set(i, j, 0xff, grey, grey, grey);
         }
-        printf("\r\n");
+        b.on_progress();
     }
+    printf("\rDone!            %n");
 
-    printf("Done!\r\n");
+    output.write("png", "output/mandel.png");
 
     ret 0;
 }
@@ -43,16 +49,23 @@ str LUT      = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:
 @mandel: num (z0: complex, max: num) {
     complex z = z0;
     for (num t = 0; t < max; t++) {
-        if (z.abs() > 2.0) {
-            ret t;
-        }
+        if (z.abs() > 2.0) ret t;
         z = z.square() + z0;
     }
     ret max;
 }
 
-@lookupChr: chr (p: num) {
-    num size = LUT.length();
-    num idx = clamp(floor(p * size), 0, size - 1);
-    ret LUT[idx];
+thing: bar {
+    progress: num,
+    max: num
+}
+
+$bar (max: num) {
+    my.progress = 0;
+    my.max = max;
+}
+
+@on_progress -> bar {
+    my.progress += 1 / my.max;
+    printf("\rProgress: %d%%  ", floor(my.progress * 100));
 }

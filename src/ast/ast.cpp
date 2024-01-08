@@ -1,5 +1,7 @@
 #include "ast.h"
 
+#include <iostream>
+
 std::ostream& csaw::operator<<(std::ostream& out, const ASTParameter& parameter)
 {
 	return out << parameter.Name << ": " << parameter.Type;

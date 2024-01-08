@@ -1,107 +1,169 @@
 #include "compiler.h"
 
-llvm::Value* csaw::OpAdd(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpAdd(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFAdd(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFAdd(left(), right()) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpSub(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpSub(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFSub(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFSub(left(), right()) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpMul(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpMul(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFMul(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFMul(left(), right()) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpDiv(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpDiv(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFDiv(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFDiv(left(), right()) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpEqu(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpMod(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFCmpOEQ(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFRem(left(), right()) };
 
-	if (left->getType()->isPointerTy() && right->getType()->isPointerTy())
-	{
-		auto t = llvm::IntegerType::get(Environment::Context(), 64);
-		left = Environment::Builder().CreatePtrToInt(left, t);
-		right = Environment::Builder().CreatePtrToInt(right, t);
-		return Environment::Builder().CreateICmpEQ(left, right);
-	}
-
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpNeq(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpEQ(value_t left, value_t right)
 {
-	if (left->getType()->isDoubleTy() && right->getType()->isDoubleTy())
-		return Environment::Builder().CreateFCmpONE(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpOEQ(left(), right())) };
 
-	if (left->getType()->isPointerTy() && right->getType()->isPointerTy())
-	{
-		auto t = llvm::IntegerType::get(Environment::Context(), 64);
-		left = Environment::Builder().CreatePtrToInt(left, t);
-		right = Environment::Builder().CreatePtrToInt(right, t);
-		return Environment::Builder().CreateICmpNE(left, right);
-	}
-
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpAnd(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpNE(value_t left, value_t right)
 {
-	if (left->getType()->isIntegerTy() && right->getType()->isIntegerTy())
-		return Environment::Builder().CreateAnd(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpONE(left(), right())) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpOr(llvm::Value* left, llvm::Value* right)
+csaw::value_t csaw::OpLT(value_t left, value_t right)
 {
-	if (left->getType()->isIntegerTy() && right->getType()->isIntegerTy())
-		return Environment::Builder().CreateOr(left, right);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpOLT(left(), right())) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpNot(llvm::Value* value)
+csaw::value_t csaw::OpGT(value_t left, value_t right)
 {
-	if (value->getType()->isIntegerTy())
-		return Environment::Builder().CreateNot(value);
-	if (value->getType()->isDoubleTy())
-		return Environment::Builder().CreateFCmpOEQ(value, llvm::ConstantFP::get(llvm::Type::getDoubleTy(Environment::Context()), 0.0));
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpOGT(left(), right())) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpNeg(llvm::Value* value)
+csaw::value_t csaw::OpLTE(value_t left, value_t right)
 {
-	if (value->getType()->isDoubleTy())
-		return Environment::Builder().CreateNeg(value);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpOLE(left(), right())) };
 
-	return nullptr;
+	return {};
 }
 
-llvm::Value* csaw::OpInv(llvm::Value* value)
+csaw::value_t csaw::OpGTE(value_t left, value_t right)
 {
-	if (value->getType()->isIntegerTy())
-		return Environment::Builder().CreateNot(value);
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateFCmpOGE(left(), right())) };
 
-	return nullptr;
+	return {};
+}
+
+csaw::value_t csaw::OpLAnd(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateLogicalAnd(NumToBool(left()), NumToBool(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpLOr(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateLogicalOr(NumToBool(left()), NumToBool(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpAnd(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateAnd(NumToInt(left()), NumToInt(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpOr(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateOr(NumToInt(left()), NumToInt(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpXOr(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateXor(NumToInt(left()), NumToInt(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpShL(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateShl(NumToInt(left()), NumToInt(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpShR(value_t left, value_t right)
+{
+	if (left()->getType()->isDoubleTy() || right()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateAShr(NumToInt(left()), NumToInt(right()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpNot(value_t value)
+{
+	if (value()->getType()->isDoubleTy())
+		return { BoolToNum(Environment::Builder().CreateNot(NumToBool(value()))) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpNeg(value_t value)
+{
+	if (value()->getType()->isDoubleTy())
+		return { Environment::Builder().CreateFNeg(value()) };
+
+	return {};
+}
+
+csaw::value_t csaw::OpInv(value_t value)
+{
+	if (value()->getType()->isDoubleTy())
+		return { IntToNum(Environment::Builder().CreateNot(NumToInt(value()))) };
+
+	return {};
 }

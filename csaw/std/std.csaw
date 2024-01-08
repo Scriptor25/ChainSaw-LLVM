@@ -1,6 +1,49 @@
-@random: num;
+@round: num (x: num);
 @floor: num (x: num);
-@printf (fmt: str) $args;
-@readf: str (fmt: str) $args;
-@num: num (x: str);
-@strcmp: num (a: str, b: str);
+@ceil: num (x: num);
+
+@min: num (a: num, b: num) { ret a < b ? a : b; }
+@max: num (a: num, b: num) { ret a > b ? a : b; }
+@clamp: num (x: num, min: num, max: num) { ret x < min ? min : x > max ? max: x; }
+
+@sin: num (x: num);
+@cos: num (x: num);
+@tan: num (x: num);
+@asin: num (x: num);
+@acos: num (x: num);
+@atan: num (x: num);
+@atan2: num (y: num, x: num);
+
+@pow: num (b: num, p: num);
+@sqrt: num (x: num);
+@exp: num (x: num);
+
+@random: num;
+
+@printf (fmt: str) ?;
+@readf: str (fmt: str) ?;
+
+@numFromStr: num (x: str);
+@numFromChr: num (x: chr);
+@strFromNum: str (x: num);
+@chrFromNum: chr (x: num);
+
+@num: num (x: str) { ret numFromStr(x); }
+@num: num (x: chr) { ret numFromChr(x); }
+@str: str (x: num) { ret strFromNum(x); }
+@chr: chr (x: num) { ret chrFromNum(x); }
+
+@streq: num (a: str, b: str);
+@strlng: num (x: str);
+@strat: chr (x: str, i: num);
+
+@(==): num (a: str, b: str) { ret streq(a, b); }
+@(!=): num (a: str, b: str) { ret !streq(a, b); }
+@length: num -> str { ret strlng(my); }
+@([]): chr (i: num) -> str { ret strat(my, i); }
+
+thing: img;
+$img (w: num, h: num);
+@set (x: num, y: num, argb: num) -> img;
+##@set (x: num, y: num, a: num, r: num, g: num, b: num) -> img { my.set(x, y, (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff)); }
+@write (format: str, filename: str) -> img;

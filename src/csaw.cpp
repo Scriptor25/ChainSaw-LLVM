@@ -100,9 +100,12 @@ int csaw::Run(
 		return 1;
 
 	Environment::Module().setSourceFileName(filename);
-	Environment::Module().print(llvm::outs(), nullptr);
-	auto code = Environment::Run();
-	std::cout << "Exit Code " << code << std::endl;
 
-	return code;
+	/*Environment::Module().print(llvm::outs(), nullptr);
+	auto code = Environment::Run();
+	std::cout << "Exit Code " << code << std::endl;*/
+
+	Environment::Compile("output.o");
+
+	return 0;
 }

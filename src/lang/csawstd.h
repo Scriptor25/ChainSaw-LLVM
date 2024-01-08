@@ -1,37 +1,30 @@
 #pragma once
 
-#include <iostream>
-#include <random>
-#include <string>
-#include <varargs.h>
-
-extern "C"
+namespace csaw
 {
-	static char* readf(const char* format, ...)
-	{
-		va_list va;
-		va_start(va, format);
-		vprintf(format, va);
-		va_end(va);
+	double round(double x);
+	double floor(double x);
+	double ceil(double x);
 
-		std::string line;
-		std::getline(std::cin, line);
+	double sin(double x);
+	double cos(double x);
+	double tan(double x);
+	double asin(double x);
+	double acos(double x);
+	double atan(double x);
+	double atan2(double y, double x);
 
-		char* value = new char[line.size() + 1];
-		for (size_t i = 0; i < line.size(); i++)
-			value[i] = line[i];
-		value[line.size()] = '\00';
+	double random();
 
-		return value;
-	}
+	void printf(const char* format, ...);
+	char* readf(const char* format, ...);
 
-	static double num(char* str)
-	{
-		return std::stod(str);
-	}
+	double numFromStr(const char* x);
+	double numFromChr(char x);
+	const char* strFromNum(double x);
+	char chrFromNum(double x);
 
-	static double random()
-	{
-		return double(rand()) / (RAND_MAX + 1);
-	}
+	double streq(const char* a, const char* b);
+	double strlng(const char* x);
+	char strat(const char* x, double i);
 }

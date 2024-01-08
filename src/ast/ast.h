@@ -14,7 +14,6 @@ namespace csaw
 	public:
 		virtual ~ASTType() {}
 
-		static std::shared_ptr<ASTType> GetNull();
 		static std::shared_ptr<ASTType> GetAny();
 		static std::shared_ptr<ASTType> GetNum();
 		static std::shared_ptr<ASTType> GetStr();
@@ -101,8 +100,8 @@ namespace csaw
 
 	struct FunStmt : Stmt
 	{
-		FunStmt(const bool is_constructor, const std::string& name, const std::shared_ptr<ASTType>& ret_type, const std::vector<ASTParameter>& parameters, const std::string& var_arg, const std::shared_ptr<ASTType>& member_of, const std::shared_ptr<EnclosedStmt>& body)
-			: IsConstructor(is_constructor), Name(name), RetType(ret_type), Parameters(parameters), VarArg(var_arg), MemberOf(member_of), Body(body) {}
+		FunStmt(const bool is_constructor, const std::string& name, const std::shared_ptr<ASTType>& ret_type, const std::vector<ASTParameter>& parameters, const bool is_var_arg, const std::shared_ptr<ASTType>& member_of, const std::shared_ptr<EnclosedStmt>& body)
+			: IsConstructor(is_constructor), Name(name), RetType(ret_type), Parameters(parameters), IsVarArg(is_var_arg), MemberOf(member_of), Body(body) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
 
@@ -110,7 +109,7 @@ namespace csaw
 		const std::string Name;
 		const std::shared_ptr<ASTType> RetType;
 		const std::vector<ASTParameter> Parameters;
-		const std::string VarArg;
+		const bool IsVarArg;
 		const std::shared_ptr<ASTType> MemberOf;
 		const std::shared_ptr<EnclosedStmt> Body;
 	};
@@ -182,7 +181,7 @@ namespace csaw
 		const std::shared_ptr<Stmt> Body;
 	};
 
-	struct AssignExpr : Expr
+	/*struct AssignExpr : Expr
 	{
 		AssignExpr(const std::shared_ptr<Expr>& object, const std::shared_ptr<Expr>& value)
 			: Object(object), Value(value) {}
@@ -191,7 +190,7 @@ namespace csaw
 
 		const std::shared_ptr<Expr> Object;
 		const std::shared_ptr<Expr> Value;
-	};
+	};*/
 
 	struct BinExpr : Expr
 	{

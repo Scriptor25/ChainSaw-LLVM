@@ -86,8 +86,8 @@ std::ostream& csaw::FunStmt::operator>>(std::ostream& out) const
 	}
 
 	out << ") ";
-	if (!VarArg.empty())
-		out << VarArg << ' ';
+	if (IsVarArg)
+		out << "? ";
 	if (!MemberOf->Name.empty())
 		out << "-> " << MemberOf << ' ';
 	return *Body.get() >> out;

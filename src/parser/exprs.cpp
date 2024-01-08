@@ -31,8 +31,10 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinAndExpr()
 		Next(); // skip operator
 
 		if (At("=")) {
+			operator_ += m_Current->Value;
 			Next(); // skip =
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
 			continue;
 		}
 		else if (At("&")) {
@@ -55,8 +57,10 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinOrExpr()
 		Next(); // skip operator
 
 		if (At("=")) {
+			operator_ += m_Current->Value;
 			Next(); // skip =
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
 			continue;
 		}
 		else if (At("|")) {
@@ -79,8 +83,10 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinXOrExpr()
 		Next(); // skip operator
 
 		if (At("=")) {
+			operator_ += m_Current->Value;
 			Next(); // skip =
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
 			continue;
 		}
 
@@ -103,7 +109,8 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinCmpExpr()
 			Next(); // skip operator
 		}
 		else if (operator_ == "=") {
-			left = std::make_shared<AssignExpr>(left, NextExpr());
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, NextExpr());
 			continue;
 		}
 
@@ -122,13 +129,17 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinSumExpr()
 		Next(); // skip operator
 
 		if (At("=")) {
+			operator_ += m_Current->Value;
 			Next(); // skip =
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
 			continue;
 		}
 		else if (At(operator_)) {
+			operator_ += m_Current->Value;
 			Next(); // skip operator
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, std::make_shared<NumExpr>(1), operator_));
+			left = std::make_shared<UnExpr>(operator_, left);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, std::make_shared<NumExpr>(1), operator_));
 			continue;
 		}
 
@@ -147,8 +158,10 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinProExpr()
 		Next(); // skip operator
 
 		if (At("=")) {
-			Next(); // skip operator
-			left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
+			operator_ += m_Current->Value;
+			Next(); // skip =
+			left = std::make_shared<BinExpr>(left, NextExpr(), operator_);
+			//left = std::make_shared<AssignExpr>(left, std::make_shared<BinExpr>(left, NextExpr(), operator_));
 			continue;
 		}
 

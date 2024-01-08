@@ -3,22 +3,28 @@ thing: complex {
     imaginary: num,
 }
 
-$complex { my.real = 0; my.imaginary = 0; }
-$complex (real: num, imaginary: num) { my.real = real; my.imaginary = imaginary; }
+@conjugate: complex -> complex;
+@mod: num -> complex;
 
-@(+): complex (z: complex) -> complex {
+$complex { my.real = 0; my.imaginary = 0; }
+$complex (real: num, imaginary: num) {
+    my.real = real;
+    my.imaginary = imaginary;
+}
+
+@(+=): complex (z: complex) -> complex {
     my.real += z.real;
     my.imaginary += z.imaginary;
     ret my;
 }
 
-@(-): complex (z: complex) -> complex {
+@(-=): complex (z: complex) -> complex {
     my.real -= z.real;
     my.imaginary -= z.imaginary;
     ret my;
 }
 
-@(*): complex (z: complex) -> complex {
+@(*=): complex (z: complex) -> complex {
     num real = my.real * z.real - my.imaginary * z.imaginary;
     num imaginary = my.real * z.imaginary + my.imaginary * z.real;
 
@@ -28,7 +34,7 @@ $complex (real: num, imaginary: num) { my.real = real; my.imaginary = imaginary;
     ret my;
 }
 
-@(/): complex (z: complex) -> complex {
+@(/=): complex (z: complex) -> complex {
     my *= z.conjugate();
     num div = 1 / pow(z.mod(), 2);
 
@@ -75,7 +81,7 @@ $complex (real: num, imaginary: num) { my.real = real; my.imaginary = imaginary;
 }
 
 @out (c: complex) {
-    printf("%f %s", c.real, (c.imaginary < 0 ? "" : "+ ") + c.imaginary + "i");
+    printf("%f %s%fi", c.real, (c.imaginary < 0 ? "" : "+ "), c.imaginary);
 }
 
 @exp: complex (z: complex) {
