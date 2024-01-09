@@ -79,8 +79,6 @@ int csaw::Shell(
 
 		std::stringstream stream(input);
 		csaw::Parse(env, stream);
-
-		Environment::Module().print(llvm::outs(), nullptr);
 	}
 
 	return 0;
@@ -97,15 +95,18 @@ int csaw::Run(
 	auto env = std::make_shared<Environment>(filename);
 
 	if (!csaw::Parse(env, filename))
+	{
+		std::cerr << "undefined file name '" << filename << "'" << std::endl;
 		return 1;
+	}
 
 	Environment::Module().setSourceFileName(filename);
 
-	/*Environment::Module().print(llvm::outs(), nullptr);
+	Environment::Module().print(llvm::outs(), nullptr);
 	auto code = Environment::Run();
-	std::cout << "Exit Code " << code << std::endl;*/
+	std::cout << "Exit Code " << code << std::endl;
 
-	Environment::Compile("output.o");
+	//Environment::Compile("output.o");
 
 	return 0;
 }

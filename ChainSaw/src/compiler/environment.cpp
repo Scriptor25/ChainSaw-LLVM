@@ -203,7 +203,7 @@ double csaw::Environment::Run()
 	llvm::InitializeNativeTargetAsmPrinter();
 	llvm::InitializeNativeTargetAsmParser();
 
-	if (llvm::verifyModule(*m_Module, &llvm::errs())) {
+	if (llvm::verifyModule(Module(), &llvm::errs())) {
 		llvm::errs() << "Error in the module. Aborting.\n";
 		return 1;
 	}
@@ -215,98 +215,6 @@ double csaw::Environment::Run()
 		llvm::errs() << "Failed to create LLJIT instance. Aborting.\n";
 		return 1;
 	}
-
-	auto& dylib = jit->getMainJITDylib();
-	llvm::orc::MangleAndInterner mangle(dylib.getExecutionSession(), jit->getDataLayout());
-
-	/*auto s = [](llvm::orc::MangleAndInterner interner)
-		{
-			llvm::orc::SymbolMap symbolMap;
-			symbolMap[interner("round")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::round)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("floor")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::floor)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("ceil")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::ceil)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("sin")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::sin)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("cos")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::cos)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("tan")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::tan)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("asin")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::asin)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("acos")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::acos)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("atan")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::atan)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("atan2")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::atan2)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("random")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::random)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("printf")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::printf)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("readf")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::readf)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("numFromStr")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::numFromStr)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("numFromChr")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::numFromChr)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("strFromNum")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::strFromNum)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("chrFromNum")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::chrFromNum)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("streq")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::streq)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("strlng")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::strlng)),
-				llvm::JITSymbolFlags(),
-			};
-			symbolMap[interner("strat")] = {
-				llvm::orc::ExecutorAddr(llvm::pointerToJITTargetAddress(&csaw::strat)),
-				llvm::JITSymbolFlags(),
-			};
-			return llvm::orc::absoluteSymbols(symbolMap);
-		};
-	auto map = s(mangle);
-
-	llvm::ExitOnError()(dylib.define(map));*/
 
 	// Add the module to the JIT
 	if (auto err = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
