@@ -5,62 +5,62 @@
 #include <random>
 #include <string>
 
-double csaw::round(double x)
+double csaw_round(double x)
 {
 	return std::round(x);
 }
 
-double csaw::floor(double x)
+double csaw_floor(double x)
 {
 	return std::floor(x);
 }
 
-double csaw::ceil(double x)
+double csaw_ceil(double x)
 {
 	return std::ceil(x);
 }
 
-double csaw::sin(double x)
+double csaw_sin(double x)
 {
 	return std::sin(x);
 }
 
-double csaw::cos(double x)
+double csaw_cos(double x)
 {
 	return std::cos(x);
 }
 
-double csaw::tan(double x)
+double csaw_tan(double x)
 {
 	return std::tan(x);
 }
 
-double csaw::asin(double x)
+double csaw_asin(double x)
 {
 	return std::asin(x);
 }
 
-double csaw::acos(double x)
+double csaw_acos(double x)
 {
 	return std::acos(x);
 }
 
-double csaw::atan(double x)
+double csaw_atan(double x)
 {
 	return std::atan(x);
 }
 
-double csaw::atan2(double y, double x)
+double csaw_atan2(double y, double x)
 {
 	return std::atan2(y, x);
 }
 
-double csaw::random()
+double csaw_random()
 {
 	return double(rand()) / (RAND_MAX + 1);
 }
 
-void csaw::printf(const char* format, ...)
+void csaw_printf(const char* format, ...)
 {
 	std::va_list va;
 	va_start(va, format);
@@ -68,7 +68,7 @@ void csaw::printf(const char* format, ...)
 	va_end(va);
 }
 
-char* csaw::readf(const char* format, ...)
+char* csaw_readf(const char* format, ...)
 {
 	std::va_list va;
 	va_start(va, format);
@@ -86,30 +86,30 @@ char* csaw::readf(const char* format, ...)
 	return value;
 }
 
-double csaw::numFromStr(const char* x)
+double csaw_numFromStr(const char* x)
 {
 	return std::stod(x);
 }
 
-double csaw::numFromChr(char x)
+double csaw_numFromChr(char x)
 {
 	return double(x);
 }
 
-const char* csaw::strFromNum(double x)
+const char* csaw_strFromNum(double x)
 {
 	auto s = std::to_string(x);
 	char* str = new char[s.length()];
-	strcpy((char*)s.c_str(), str);
+	strcpy_s(str, s.length(), s.c_str());
 	return str;
 }
 
-char csaw::chrFromNum(double x)
+char csaw_chrFromNum(double x)
 {
 	return char(x);
 }
 
-double csaw::streq(const char* a, const char* b)
+double csaw_streq(const char* a, const char* b)
 {
 	if (a == b)
 		return 1;
@@ -119,12 +119,12 @@ double csaw::streq(const char* a, const char* b)
 	return strcmp(a, b) == 0;
 }
 
-double csaw::strlng(const char* x)
+double csaw_strlng(const char* x)
 {
-	return strlen(x);
+	return double(strlen(x));
 }
 
-char csaw::strat(const char* x, double i)
+char csaw_strat(const char* x, double i)
 {
 	return x[size_t(i)];
 }

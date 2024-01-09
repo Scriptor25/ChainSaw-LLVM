@@ -1,6 +1,6 @@
-#include "../lang/csawstd.h"
 #include "compiler.h"
 
+#include <csawstd.h>
 #include <format>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/IR/LegacyPassManager.h>
