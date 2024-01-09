@@ -199,17 +199,30 @@ double csaw::Environment::Run()
 {
 	FinishGlobalFunction();
 
-	llvm::InitializeNativeTarget();
-	llvm::InitializeNativeTargetAsmPrinter();
-	llvm::InitializeNativeTargetAsmParser();
-
 	if (llvm::verifyModule(Module(), &llvm::errs())) {
 		llvm::errs() << "Error in the module. Aborting.\n";
 		return 1;
 	}
 
+	llvm::InitializeNativeTarget();
+	llvm::InitializeNativeTargetAsmPrinter();
+	llvm::InitializeNativeTargetAsmParser();
+
+	auto machine = SetTargetTriple();
+	if (!machine)
+	{
+		llvm::errs() << "Failed to set target triple and get target machine. Aborting.\n";
+		return 1;
+	}
+
 	// Create an LLJIT instance
 	auto builder = llvm::orc::LLJITBuilder().create();
+	if (!builder)
+	{
+		llvm::errs() << builder.takeError();
+		return 1;
+	}
+
 	auto& jit = builder.get();
 	if (!jit) {
 		llvm::errs() << "Failed to create LLJIT instance. Aborting.\n";
@@ -263,32 +276,19 @@ bool csaw::Environment::Compile(const std::string& filename)
 	llvm::InitializeAllAsmParsers();
 	llvm::InitializeAllAsmPrinters();
 
-	auto triple = llvm::sys::getDefaultTargetTriple();
-
-	std::string error;
-	auto target = llvm::TargetRegistry::lookupTarget(triple, error);
-
-	if (!target)
+	auto machine = SetTargetTriple();
+	if (!machine)
 	{
-		llvm::errs() << "failed to get target for triple '" << triple << "': " << error;
+		llvm::errs() << "Failed to set target triple and get target machine. Aborting.\n";
 		return false;
 	}
-
-	auto CPU = "generic";
-	auto FEATURES = "";
-
-	llvm::TargetOptions opt;
-	auto machine = target->createTargetMachine(triple, CPU, FEATURES, opt, llvm::Reloc::PIC_);
-
-	m_Module->setDataLayout(machine->createDataLayout());
-	m_Module->setTargetTriple(triple);
 
 	std::error_code ec;
 	llvm::raw_fd_ostream dst(filename, ec, llvm::sys::fs::OF_None);
 
 	if (ec)
 	{
-		llvm::errs() << "failed to open file '" << filename << "': " << ec.message();
+		llvm::errs() << "Failed to open file '" << filename << "': " << ec.message() << ". Aborting.\n";
 		return false;
 	}
 
@@ -297,7 +297,7 @@ bool csaw::Environment::Compile(const std::string& filename)
 
 	if (machine->addPassesToEmitFile(pm, dst, nullptr, type))
 	{
-		llvm::errs() << "failed to emit file of type '" << (type == llvm::CodeGenFileType::AssemblyFile ? "AssemblyFile" : type == llvm::CodeGenFileType::ObjectFile ? "ObjectFile" : "Null") << "'";
+		llvm::errs() << "Failed to emit file of type '" << (type == llvm::CodeGenFileType::AssemblyFile ? "AssemblyFile" : type == llvm::CodeGenFileType::ObjectFile ? "ObjectFile" : "Null") << "'. Aborting.\n";
 		return false;
 	}
 
@@ -305,6 +305,31 @@ bool csaw::Environment::Compile(const std::string& filename)
 	dst.flush();
 
 	return true;
+}
+
+llvm::TargetMachine* csaw::Environment::SetTargetTriple()
+{
+	auto triple = llvm::sys::getDefaultTargetTriple();
+
+	std::string error;
+	auto target = llvm::TargetRegistry::lookupTarget(triple, error);
+
+	if (!target)
+	{
+		llvm::errs() << "failed to get target for triple '" << triple << "': " << error << "\n";
+		return nullptr;
+	}
+
+	auto CPU = "generic";
+	auto FEATURES = "";
+
+	llvm::TargetOptions opt;
+	auto machine = target->createTargetMachine(triple, CPU, FEATURES, opt, llvm::Reloc::PIC_);
+
+	Module().setDataLayout(machine->createDataLayout());
+	Module().setTargetTriple(triple);
+
+	return machine;
 }
 
 void csaw::Environment::CreateGlobalFunction()

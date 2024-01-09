@@ -144,6 +144,7 @@ namespace csaw
 		static llvm::Module& Module() { return *m_Module; }
 
 	private:
+		static llvm::TargetMachine* SetTargetTriple();
 		static void CreateGlobalFunction();
 		static void FinishGlobalFunction();
 
