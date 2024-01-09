@@ -57,9 +57,6 @@
     <ClCompile Include="src\compiler\comexprs.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\lang\csawstd.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ast\ast.h">
@@ -72,9 +69,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\csaw.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="src\lang\csawstd.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -29,7 +29,6 @@
     <ClCompile Include="src\compiler\environment.cpp" />
     <ClCompile Include="src\compiler\operators.cpp" />
     <ClCompile Include="src\csaw.cpp" />
-    <ClCompile Include="src\lang\csawstd.cpp" />
     <ClCompile Include="src\parser\exprs.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
     <ClCompile Include="src\parser\stmts.cpp" />
@@ -39,7 +38,6 @@
     <ClInclude Include="src\ast\ast.h" />
     <ClInclude Include="src\compiler\compiler.h" />
     <ClInclude Include="src\csaw.h" />
-    <ClInclude Include="src\lang\csawstd.h" />
     <ClInclude Include="src\parser\parser.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -110,7 +108,7 @@
       <AdditionalDependencies>ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>llvm-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -133,7 +131,7 @@
       <AdditionalDependencies>ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>llvm-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,7 +150,7 @@
       <AdditionalDependencies>ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>llvm-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -175,7 +173,7 @@
       <AdditionalDependencies>ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>llvm-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

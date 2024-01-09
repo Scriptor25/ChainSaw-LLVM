@@ -219,7 +219,7 @@ double csaw::Environment::Run()
 	auto& dylib = jit->getMainJITDylib();
 	llvm::orc::MangleAndInterner mangle(dylib.getExecutionSession(), jit->getDataLayout());
 
-	auto s = [](llvm::orc::MangleAndInterner interner)
+	/*auto s = [](llvm::orc::MangleAndInterner interner)
 		{
 			llvm::orc::SymbolMap symbolMap;
 			symbolMap[interner("round")] = {
@@ -306,7 +306,7 @@ double csaw::Environment::Run()
 		};
 	auto map = s(mangle);
 
-	llvm::ExitOnError()(dylib.define(map));
+	llvm::ExitOnError()(dylib.define(map));*/
 
 	// Add the module to the JIT
 	if (auto err = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
