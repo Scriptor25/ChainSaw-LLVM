@@ -8,11 +8,14 @@ csaw::type_t csaw::GenIR(const std::shared_ptr<ASTType>& type)
 	if (!type)
 		return Environment::Builder().getVoidTy();
 
+	// any = opaque*
 	// num = double
 	// chr = i8
 	// str = i8*
 	// {}  = {}*
 
+	if (type->Name == "any")
+		return type_t(Environment::Builder().getPtrTy(), Environment::Builder().getPtrTy());
 	if (type->Name == "num")
 		return type_t(Environment::Builder().getDoubleTy());
 	if (type->Name == "chr")

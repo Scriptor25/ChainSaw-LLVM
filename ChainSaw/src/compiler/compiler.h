@@ -82,7 +82,7 @@ namespace csaw
 		bool operator!() const { return !fun; }
 		operator bool() const { return fun; }
 
-		llvm::Function* fun;
+		llvm::Function* fun = nullptr;
 		type_t type;
 		std::vector<type_t> argtypes;
 		bool isconstructor;
@@ -137,7 +137,7 @@ namespace csaw
 		static void Optimize(llvm::Function* function) { m_FPM->run(*function, *m_FAM); }
 
 		static double Run();
-		static bool Compile(const std::string& filename);
+		static void Compile(const std::string& filename);
 
 		static llvm::LLVMContext& Context() { return *m_Context; }
 		static llvm::IRBuilder<>& Builder() { return *m_Builder; }

@@ -1,6 +1,5 @@
 #include "csawstd.h"
 
-#include <cstdarg>
 #include <iostream>
 #include <random>
 #include <string>
@@ -62,41 +61,52 @@ double csaw_random()
 
 void csaw_printf(const char* format, ...)
 {
-	std::va_list va;
-	va_start(va, format);
-	vprintf(format, va);
-	va_end(va);
+	std::va_list valist;
+	va_start(valist, format);
+	vprintf(format, valist);
+	va_end(valist);
 }
 
 char* csaw_readf(const char* format, ...)
 {
-	std::va_list va;
-	va_start(va, format);
-	vprintf(format, va);
-	va_end(va);
+	std::va_list valist;
+	va_start(valist, format);
+	auto str = csaw_vreadf(format, valist);
+	va_end(valist);
+
+	return str;
+}
+
+void csaw_vprintf(const char* format, va_list valist)
+{
+	vprintf(format, valist);
+}
+
+char* csaw_vreadf(const char* format, va_list valist)
+{
+	vprintf(format, valist);
 
 	std::string line;
 	std::getline(std::cin, line);
 
-	char* value = new char[line.size() + 1];
-	for (size_t i = 0; i < line.size(); i++)
-		value[i] = line[i];
-	value[line.size()] = '\00';
+	char* str = new char[line.size() + 1];
+	strcpy_s(str, line.length(), line.c_str());
+	str[line.size()] = '\00';
 
-	return value;
+	return str;
 }
 
-double csaw_numFromStr(const char* x)
+double csaw_str_to_num(const char* x)
 {
 	return std::stod(x);
 }
 
-double csaw_numFromChr(char x)
+double csaw_chr_to_num(char x)
 {
 	return double(x);
 }
 
-const char* csaw_strFromNum(double x)
+const char* csaw_num_to_str(double x)
 {
 	auto s = std::to_string(x);
 	char* str = new char[s.length()];
@@ -104,27 +114,27 @@ const char* csaw_strFromNum(double x)
 	return str;
 }
 
-char csaw_chrFromNum(double x)
+char csaw_num_to_chr(double x)
 {
 	return char(x);
 }
 
-double csaw_streq(const char* a, const char* b)
+double csaw_str_cmp(const char* a, const char* b)
 {
 	if (a == b)
 		return 1;
 	if (a == nullptr || b == nullptr)
 		return 0;
 
-	return strcmp(a, b) == 0;
+	return strcmp(a, b);
 }
 
-double csaw_strlng(const char* x)
+double csaw_str_len(const char* x)
 {
 	return double(strlen(x));
 }
 
-char csaw_strat(const char* x, double i)
+char csaw_str_get(const char* x, double i)
 {
 	return x[size_t(i)];
 }

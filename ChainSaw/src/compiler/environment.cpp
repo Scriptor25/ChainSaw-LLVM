@@ -34,7 +34,10 @@ std::unique_ptr<llvm::StandardInstrumentations> csaw::Environment::m_SI;
 csaw::value_t csaw::Environment::CreateVariable(const std::string& name, const value_t& value, bool isGlobal)
 {
 	if (m_Variables.contains(name))
-		throw "cannot redefine variable";
+	{
+		llvm::errs() << "Cannot redefine variable '" << name << "'\r\n";
+		throw;
+	}
 
 	if (isGlobal)
 		return m_Variables[name] = value;
@@ -71,7 +74,8 @@ csaw::value_t& csaw::Environment::GetVar(const std::string& name)
 		return m_Variables[name];
 	if (m_Parent)
 		return m_Parent->GetVar(name);
-	throw "undefined variable";
+	llvm::errs() << "Undefined variable '" << name << "'\r\n";
+	throw;
 }
 
 void csaw::Environment::InitEnvironment()
@@ -116,7 +120,7 @@ csaw::fun_t csaw::Environment::GetFunction(const type_t& memberof, const std::st
 {
 	auto& funs = m_Functions[memberof][name];
 	if (funs.empty())
-		return {};
+		return fun_t();
 
 	for (auto& fun : funs)
 	{
@@ -132,7 +136,7 @@ csaw::fun_t csaw::Environment::GetFunction(const type_t& memberof, const std::st
 			return fun;
 	}
 
-	return {};
+	return fun_t();
 }
 
 void csaw::Environment::CreateType(const std::string& name, const std::string& group, llvm::StructType* type, const std::vector<std::string>& fields)
@@ -182,8 +186,9 @@ csaw::value_t csaw::Environment::CreateCall(const type_t& memberof, const std::s
 	if (!fun)
 	{
 		if (justAsking)
-			return {};
-		throw "undefined function";
+			return value_t();
+		llvm::errs() << "Undefined function '" << name << "'\r\n";
+		throw;
 	}
 
 	if (fun.isconstructor)
@@ -200,8 +205,8 @@ double csaw::Environment::Run()
 	FinishGlobalFunction();
 
 	if (llvm::verifyModule(Module(), &llvm::errs())) {
-		llvm::errs() << "Error in the module. Aborting.\n";
-		return 1;
+		llvm::errs() << "Failed to verify module\r\n";
+		throw;
 	}
 
 	llvm::InitializeNativeTarget();
@@ -211,35 +216,31 @@ double csaw::Environment::Run()
 	auto machine = SetTargetTriple();
 	if (!machine)
 	{
-		llvm::errs() << "Failed to set target triple and get target machine. Aborting.\n";
-		return 1;
+		llvm::errs() << "Failed to set target triple and get target machine\r\n";
+		throw;
 	}
 
 	// Create an LLJIT instance
 	auto builder = llvm::orc::LLJITBuilder().create();
 	if (!builder)
 	{
-		llvm::errs() << builder.takeError();
-		return 1;
+		llvm::errs() << "Failed to create LLJIT instance : " << builder.takeError() << "\r\n";
+		throw;
 	}
 
 	auto& jit = builder.get();
-	if (!jit) {
-		llvm::errs() << "Failed to create LLJIT instance. Aborting.\n";
-		return 1;
-	}
 
 	// Add the module to the JIT
 	if (auto err = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
 	{
-		llvm::errs() << "Failed to add module to JIT: " << err << "\n";
-		return 1;
+		llvm::errs() << "Failed to add module to JIT: " << err << "\r\n";
+		throw;
 	}
 
 	auto globalSymbol = jit->lookup("__global__");
 	if (!globalSymbol) {
-		llvm::errs() << "Could not find __global__ function. Aborting.\n";
-		return 1;
+		llvm::errs() << "Could not find function '__global__': " << globalSymbol.takeError() << "\r\n";
+		throw;
 	}
 
 	using GlobalFuncType = void (*)();
@@ -249,8 +250,8 @@ double csaw::Environment::Run()
 	// Find the address of the main function
 	auto mainSymbol = jit->lookup("main");
 	if (!mainSymbol) {
-		llvm::errs() << "Could not find main function. Aborting.\n";
-		return 1;
+		llvm::errs() << "Could not find function 'main':" << mainSymbol.takeError() << "\r\n";
+		throw;
 	}
 
 	// Get a function pointer to the main function
@@ -261,13 +262,13 @@ double csaw::Environment::Run()
 	return mainFunc();
 }
 
-bool csaw::Environment::Compile(const std::string& filename)
+void csaw::Environment::Compile(const std::string& filename)
 {
 	FinishGlobalFunction();
 
 	if (llvm::verifyModule(Module(), &llvm::errs())) {
-		llvm::errs() << "Error in the module. Aborting.\n";
-		return false;
+		llvm::errs() << "Failed to verify module\r\n";
+		throw;
 	}
 
 	llvm::InitializeAllTargetInfos();
@@ -279,8 +280,8 @@ bool csaw::Environment::Compile(const std::string& filename)
 	auto machine = SetTargetTriple();
 	if (!machine)
 	{
-		llvm::errs() << "Failed to set target triple and get target machine. Aborting.\n";
-		return false;
+		llvm::errs() << "Failed to set target triple and get target machine\r\n";
+		throw;
 	}
 
 	std::error_code ec;
@@ -288,8 +289,8 @@ bool csaw::Environment::Compile(const std::string& filename)
 
 	if (ec)
 	{
-		llvm::errs() << "Failed to open file '" << filename << "': " << ec.message() << ". Aborting.\n";
-		return false;
+		llvm::errs() << "Failed to open file '" << filename << "': " << ec.message() << "\r\n";
+		throw;
 	}
 
 	llvm::legacy::PassManager pm;
@@ -297,14 +298,12 @@ bool csaw::Environment::Compile(const std::string& filename)
 
 	if (machine->addPassesToEmitFile(pm, dst, nullptr, type))
 	{
-		llvm::errs() << "Failed to emit file of type '" << (type == llvm::CodeGenFileType::AssemblyFile ? "AssemblyFile" : type == llvm::CodeGenFileType::ObjectFile ? "ObjectFile" : "Null") << "'. Aborting.\n";
-		return false;
+		llvm::errs() << "Failed to emit file of type '" << (type == llvm::CodeGenFileType::AssemblyFile ? "AssemblyFile" : type == llvm::CodeGenFileType::ObjectFile ? "ObjectFile" : "Null") << "'\r\n";
+		throw;
 	}
 
 	pm.run(Module());
 	dst.flush();
-
-	return true;
 }
 
 llvm::TargetMachine* csaw::Environment::SetTargetTriple()
@@ -316,8 +315,8 @@ llvm::TargetMachine* csaw::Environment::SetTargetTriple()
 
 	if (!target)
 	{
-		llvm::errs() << "failed to get target for triple '" << triple << "': " << error << "\n";
-		return nullptr;
+		llvm::errs() << "Failed to get target for triple '" << triple << "': " << error << "\r\n";
+		throw;
 	}
 
 	auto CPU = "generic";
@@ -350,8 +349,9 @@ void csaw::Environment::FinishGlobalFunction()
 
 	if (llvm::verifyFunction(*fun, &llvm::errs()))
 	{
+		llvm::errs() << "Failed to verify function '__global__':\r\n";
 		fun->print(llvm::errs());
-		throw "failed to verify global initializers function";
+		throw;
 	}
 
 	Optimize(fun);
