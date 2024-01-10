@@ -1,21 +1,37 @@
-@csaw_str_get: chr (x: str, i: num);
-@csaw_vreadf: str (format: str) ?;
+@floor: num (x: num);
+
+@sqrt: num (x: num);
+@exp: num (x: num);
+@pow: num (x: num, y: num);
+
+@sin: num (x: num);
+@cos: num (x: num);
+@tan: num (x: num);
+@asin: num (x: num);
+@acos: num (x: num);
+@atan: num (x: num);
+@atan2: num (y: num, x: num);
+
+@csaw_printf (format: str, va: any);
+@csaw_readf: str (format: str, va: any);
 @csaw_random: num;
 @csaw_str_to_num: num (x: str);
+@csaw_chr_to_num: num (x: chr);
+@csaw_num_to_str: str (x: num);
+@csaw_num_to_chr: chr (x: num);
+@csaw_str_cmp: num (a: str, b: str);
 @csaw_str_len: num (x: str);
-@csaw_vprintf (format: str) ?;
+@csaw_str_get: chr (x: str, i: num);
 
-@pow: num (x: num, y: num);
-@sqrt: num (x: num);
-@printf (format: str) ? { csaw_vprintf(format, ??); }
-@exp: num (x: num);
-@cos: num (x: num);
-@sin: num (x: num);
-@atan2: num (y: num, x: num);
-@readf: str (format: str) ? { ret csaw_vreadf(format, ??); }
-@num: num (x: str) { ret csaw_str_to_num(x); }
+@printf (format: str) ? { csaw_printf(format, ??); }
+@readf: str (format: str) ? { ret csaw_readf(format, ??); }
 @random: num { ret csaw_random(); }
+@num: num (x: str) { ret csaw_str_to_num(x); }
+@num: num (x: chr) { ret csaw_chr_to_num(x); }
+@str: str (x: num) { ret csaw_num_to_str(x); }
+@chr: chr (x: num) { ret csaw_num_to_chr(x); }
+@(==): num (a: str, b: str) { ret csaw_str_cmp(a, b) == 0; }
 @length: num -> str { ret csaw_str_len(my); }
-@floor: num (x: num);
-@clamp: num (x: num, min: num, max: num);
 @([]): chr (i: num) -> str { ret csaw_str_get(my, i); }
+
+@clamp: num (x: num, min: num, max: num) { ret x < min ? min : x > max ? max : x; }

@@ -15,13 +15,16 @@ csaw::type_t csaw::GenIR(const std::shared_ptr<ASTType>& type)
 	// {}  = {}*
 
 	if (type->Name == "any")
-		return type_t(Environment::Builder().getPtrTy(), Environment::Builder().getPtrTy());
+		return type_t(Environment::Builder().getPtrTy());
 	if (type->Name == "num")
 		return type_t(Environment::Builder().getDoubleTy());
 	if (type->Name == "chr")
 		return type_t(Environment::Builder().getInt8Ty());
 	if (type->Name == "str")
-		return type_t(llvm::PointerType::get(Environment::Builder().getInt8Ty(), 0), Environment::Builder().getInt8Ty());
+	{
+		auto i8ty = Environment::Builder().getInt8Ty();
+		return type_t(llvm::PointerType::get(i8ty, 0), i8ty);
+	}
 
 	if (auto t = llvm::StructType::getTypeByName(Environment::Context(), type->Name))
 		return type_t(llvm::PointerType::get(t, 0), t);

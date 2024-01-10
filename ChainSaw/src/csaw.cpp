@@ -103,10 +103,21 @@ int csaw::Run(
 	Environment::Module().setSourceFileName(filename);
 
 	Environment::Module().print(llvm::outs(), nullptr);
-	auto code = Environment::Run();
-	std::cout << "Exit Code " << code << std::endl;
 
-	//Environment::Compile("output.o");
+	if (flags & "jit")
+	{
+		auto code = Environment::Run();
+		std::cout << "Exit Code " << code << std::endl;
+	}
+	else
+	{
+		Environment::Compile("output.o");
+	}
 
 	return 0;
+}
+
+bool csaw::operator&(const std::vector<std::string> list, const std::string& element)
+{
+	return std::find(list.begin(), list.end(), element) != list.end();
 }

@@ -220,57 +220,71 @@ double csaw::Environment::Run()
 
 	if (llvm::verifyModule(Module(), &llvm::errs())) {
 		llvm::errs() << "Failed to verify module\r\n";
-		throw;
+		return 1;
 	}
 
 	llvm::InitializeNativeTarget();
 	llvm::InitializeNativeTargetAsmPrinter();
 	llvm::InitializeNativeTargetAsmParser();
 
-	auto machine = SetTargetTriple();
-	if (!machine)
-	{
-		llvm::errs() << "Failed to set target triple and get target machine\r\n";
-		throw;
-	}
-
 	// Create an LLJIT instance
 	auto builder = llvm::orc::LLJITBuilder().create();
 	if (!builder)
 	{
 		llvm::errs() << "Failed to create LLJIT instance : " << builder.takeError() << "\r\n";
-		throw;
+		return 1;
 	}
 
-	auto& jit = builder.get();
+	auto jit = std::move(*builder);
+
+	auto& es = jit->getExecutionSession();
+	auto& dl = jit->getDataLayout();
+	llvm::orc::MangleAndInterner mangle(es, dl);
+
+	auto& jd = jit->getMainJITDylib();
+
+	llvm::orc::SymbolMap symbols;
+	{
+		symbols[mangle("csaw_printf")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_printf), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_readf")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_readf), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_random")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_random), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_str_to_num")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_to_num), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_chr_to_num")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_chr_to_num), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_num_to_str")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_str), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_num_to_chr")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_chr), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_str_cmp")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_cmp), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_str_len")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_len), llvm::JITSymbolFlags() };
+		symbols[mangle("csaw_str_get")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_get), llvm::JITSymbolFlags() };
+	}
+	jd.define(llvm::orc::absoluteSymbols(symbols));
 
 	// Add the module to the JIT
 	if (auto err = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
 	{
 		llvm::errs() << "Failed to add module to JIT: " << err << "\r\n";
-		throw;
+		return 1;
 	}
 
 	auto globalSymbol = jit->lookup("__global__");
 	if (!globalSymbol) {
 		llvm::errs() << "Could not find function '__global__': " << globalSymbol.takeError() << "\r\n";
-		throw;
+		return 1;
 	}
 
 	using GlobalFuncType = void (*)();
-	auto globalFunc = reinterpret_cast<GlobalFuncType>(globalSymbol.get().getValue());
+	auto globalFunc = reinterpret_cast<GlobalFuncType>(globalSymbol->getValue());
 	globalFunc();
 
 	// Find the address of the main function
 	auto mainSymbol = jit->lookup("main");
 	if (!mainSymbol) {
 		llvm::errs() << "Could not find function 'main':" << mainSymbol.takeError() << "\r\n";
-		throw;
+		return 1;
 	}
 
 	// Get a function pointer to the main function
 	using MainFuncType = double (*)();
-	auto mainFunc = reinterpret_cast<MainFuncType>(mainSymbol.get().getValue());
+	auto mainFunc = reinterpret_cast<MainFuncType>(mainSymbol->getValue());
 
 	// Call the main function
 	return mainFunc();
@@ -282,7 +296,7 @@ void csaw::Environment::Compile(const std::string& filename)
 
 	if (llvm::verifyModule(Module(), &llvm::errs())) {
 		llvm::errs() << "Failed to verify module\r\n";
-		throw;
+		return;
 	}
 
 	llvm::InitializeAllTargetInfos();
@@ -295,7 +309,7 @@ void csaw::Environment::Compile(const std::string& filename)
 	if (!machine)
 	{
 		llvm::errs() << "Failed to set target triple and get target machine\r\n";
-		throw;
+		return;
 	}
 
 	std::error_code ec;
@@ -304,7 +318,7 @@ void csaw::Environment::Compile(const std::string& filename)
 	if (ec)
 	{
 		llvm::errs() << "Failed to open file '" << filename << "': " << ec.message() << "\r\n";
-		throw;
+		return;
 	}
 
 	llvm::legacy::PassManager pm;
@@ -313,7 +327,7 @@ void csaw::Environment::Compile(const std::string& filename)
 	if (machine->addPassesToEmitFile(pm, dst, nullptr, type))
 	{
 		llvm::errs() << "Failed to emit file of type '" << (type == llvm::CodeGenFileType::AssemblyFile ? "AssemblyFile" : type == llvm::CodeGenFileType::ObjectFile ? "ObjectFile" : "Null") << "'\r\n";
-		throw;
+		return;
 	}
 
 	pm.run(Module());
@@ -330,7 +344,7 @@ llvm::TargetMachine* csaw::Environment::SetTargetTriple()
 	if (!target)
 	{
 		llvm::errs() << "Failed to get target for triple '" << triple << "': " << error << "\r\n";
-		throw;
+		return nullptr;
 	}
 
 	auto CPU = "generic";
@@ -365,7 +379,7 @@ void csaw::Environment::FinishGlobalFunction()
 	{
 		llvm::errs() << "Failed to verify function '__global__':\r\n";
 		fun->print(llvm::errs());
-		throw;
+		return;
 	}
 
 	Optimize(fun);

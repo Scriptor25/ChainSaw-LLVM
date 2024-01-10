@@ -37,7 +37,7 @@ namespace csaw
 
 	inline bool operator!=(const type_t& a, const type_t& b)
 	{
-		return a.type != b.type || a.element != b.element;
+		return a.type != b.type || (!(a.type->isPointerTy() && !a.element) && a.element != b.element);
 	}
 
 	inline bool operator<(const type_t& a, const type_t& b)
