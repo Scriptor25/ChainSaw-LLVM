@@ -181,17 +181,6 @@ namespace csaw
 		const std::shared_ptr<Stmt> Body;
 	};
 
-	/*struct AssignExpr : Expr
-	{
-		AssignExpr(const std::shared_ptr<Expr>& object, const std::shared_ptr<Expr>& value)
-			: Object(object), Value(value) {}
-
-		std::ostream& operator>>(std::ostream& out) const override;
-
-		const std::shared_ptr<Expr> Object;
-		const std::shared_ptr<Expr> Value;
-	};*/
-
 	struct BinExpr : Expr
 	{
 		BinExpr(const std::shared_ptr<Expr>& left, const std::shared_ptr<Expr>& right, const std::string& operator_)
@@ -316,6 +305,18 @@ namespace csaw
 
 		const std::string Operator;
 		const std::shared_ptr<Expr> Value;
+	};
+
+	struct VarArgExpr : Expr
+	{
+		VarArgExpr() {}
+
+		VarArgExpr(const std::shared_ptr<ASTType>& type)
+			: Type(type) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+
+		const std::shared_ptr<ASTType> Type;
 	};
 
 	std::ostream& operator<<(std::ostream& out, const ASTParameter& parameter);

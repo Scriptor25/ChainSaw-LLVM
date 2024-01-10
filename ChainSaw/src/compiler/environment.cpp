@@ -68,6 +68,20 @@ csaw::value_t csaw::Environment::GetVariable(const std::string& name)
 	return value_t(Builder().CreateLoad(var.ptrType.type, ptr, name), var.ptrType);
 }
 
+llvm::Value* csaw::Environment::SetVarArgs(llvm::Value* valist)
+{
+	return m_VarArgs = valist;
+}
+
+llvm::Value* csaw::Environment::GetVarArgs()
+{
+	if (m_VarArgs)
+		return m_VarArgs;
+	if (m_Parent)
+		return m_Parent->GetVarArgs();
+	throw;
+}
+
 csaw::value_t& csaw::Environment::GetVar(const std::string& name)
 {
 	if (m_Variables.contains(name))

@@ -2,8 +2,6 @@
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Expr>& expr)
 {
-	/*if (auto e = std::dynamic_pointer_cast<AssignExpr>(expr))
-		return GenIR(env, e);*/
 	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
 		return GenIR(env, e);
 	if (auto e = std::dynamic_pointer_cast<CallExpr>(expr))
@@ -26,36 +24,11 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 		return GenIR(env, e);
 	if (auto e = std::dynamic_pointer_cast<UnExpr>(expr))
 		return GenIR(env, e);
+	if (auto e = std::dynamic_pointer_cast<VarArgExpr>(expr))
+		return GenIR(env, e);
 
 	throw "TODO";
 }
-
-//csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<AssignExpr>& expr)
-//{
-//	auto value = GenIR(env, expr->Value);
-//
-//	if (auto e = std::dynamic_pointer_cast<IdExpr>(expr->Object))
-//		return env->SetVariable(e->Value, value);
-//
-//	if (auto e = std::dynamic_pointer_cast<MemExpr>(expr->Object))
-//	{
-//		auto object = GenIR(env, e->Object);
-//		auto strtype = llvm::dyn_cast<llvm::StructType>(object.ptrType.element);
-//		auto type = Environment::GetType(strtype);
-//
-//		unsigned int i = 0;
-//		for (; i < type->fields.size(); i++)
-//			if (type->fields[i] == e->Member)
-//				break;
-//		if (i == type->fields.size())
-//			throw "undefined field";
-//
-//		auto ptr = Environment::Builder().CreateStructGEP(strtype, object(), i);
-//		return Environment::Builder().CreateStore(value(), ptr);
-//	}
-//
-//	throw "TODO";
-//}
 
 static csaw::value_t Assign(const std::shared_ptr<csaw::Environment>& env, const std::shared_ptr<csaw::Expr>& obj, csaw::value_t value)
 {
@@ -279,4 +252,13 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 		throw "TODO";
 
 	return value;
+}
+
+csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarArgExpr>& expr)
+{
+	if (!expr->Type)
+		return env->GetVarArgs();
+
+	auto type = GenIR(expr->Type);
+	return value_t(Environment::Builder().CreateVAArg(env->GetVarArgs(), type.type), type);
 }

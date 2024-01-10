@@ -2,8 +2,6 @@
 
 std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Expr>& expr)
 {
-	/*if (auto e = std::dynamic_pointer_cast<AssignExpr>(expr))
-		return *e.get() >> out;*/
 	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
 		return *e.get() >> out;
 	if (auto e = std::dynamic_pointer_cast<CallExpr>(expr))
@@ -23,6 +21,8 @@ std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Expr>& e
 	if (auto e = std::dynamic_pointer_cast<StrExpr>(expr))
 		return *e.get() >> out;
 	if (auto e = std::dynamic_pointer_cast<UnExpr>(expr))
+		return *e.get() >> out;
+	if (auto e = std::dynamic_pointer_cast<VarArgExpr>(expr))
 		return *e.get() >> out;
 
 	throw;
@@ -110,4 +110,9 @@ std::ostream& csaw::StrExpr::operator>>(std::ostream& out) const
 std::ostream& csaw::UnExpr::operator>>(std::ostream& out) const
 {
 	return out << Operator << Value;
+}
+
+std::ostream& csaw::VarArgExpr::operator>>(std::ostream& out) const
+{
+	return out << "?" << Type;
 }

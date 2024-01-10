@@ -27,7 +27,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinAndExpr()
 	auto left = NextBinOrExpr();
 
 	while (At("&")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At("=")) {
@@ -53,7 +53,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinOrExpr()
 	auto left = NextBinXOrExpr();
 
 	while (At("|")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At("=")) {
@@ -79,7 +79,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinXOrExpr()
 	auto left = NextBinCmpExpr();
 
 	while (At("^")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At("=")) {
@@ -101,7 +101,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinCmpExpr()
 	auto left = NextBinSumExpr();
 
 	while (At("=") || At("!") || At("<") || At(">")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At(operator_) || At("=")) {
@@ -125,7 +125,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinSumExpr()
 	auto left = NextBinProExpr();
 
 	while (At("+") || At("-")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At("=")) {
@@ -154,7 +154,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinProExpr()
 	auto left = NextCallExpr();
 
 	while (At("*") || At("/") || At("%")) {
-		auto operator_ = m_Current->Value;
+		std::string operator_ = m_Current->Value;
 		Next(); // skip operator
 
 		if (At("=")) {
@@ -241,13 +241,16 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 		throw;
 	}
 
-	switch (m_Current->Type) {
-	case TOKEN_IDENTIFIER: {
+	switch (m_Current->Type)
+	{
+	case TOKEN_IDENTIFIER:
+	{
 		auto expr = std::make_shared<IdExpr>(m_Current->Value);
 		Next(); // skip id
 		return expr;
 	}
-	case TOKEN_NUMBER: {
+	case TOKEN_NUMBER:
+	{
 		std::shared_ptr<Expr> expr;
 		if (m_Current->Value.rfind("0x", 0) != std::string::npos)
 			expr = std::make_shared<NumExpr>(m_Current->Value.substr(2), 16);
@@ -258,12 +261,14 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 		Next(); // skip num
 		return expr;
 	}
-	case TOKEN_STRING: {
+	case TOKEN_STRING:
+	{
 		auto expr = std::make_shared<StrExpr>(m_Current->Value);
 		Next(); // skip str
 		return expr;
 	}
-	case TOKEN_CHAR: {
+	case TOKEN_CHAR:
+	{
 		auto expr = std::make_shared<ChrExpr>(m_Current->Value[0]);
 		Next(); // skip chr
 		return expr;
@@ -272,30 +277,46 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 		break;
 	}
 
-	if (m_Current->Value == "(") {
+	if (m_Current->Value == "(")
+	{
 		Next(); // skip (
 		auto expr = NextExpr();
 		ExpectAndNext(")"); // skip )
 		return expr;
 	}
 
-	if (m_Current->Value == "-") {
+	if (m_Current->Value == "-")
+	{
 		Next(); // skip -
 		return std::make_shared<UnExpr>("-", NextCallExpr());
 	}
-	if (m_Current->Value == "!") {
+	if (m_Current->Value == "!")
+	{
 		Next(); // skip !
 		return std::make_shared<UnExpr>("!", NextCallExpr());
 	}
-	if (m_Current->Value == "~") {
+	if (m_Current->Value == "~")
+	{
 		Next(); // skip ~
 		return std::make_shared<UnExpr>("~", NextCallExpr());
 	}
+	if (m_Current->Value == "?")
+	{
+		Next(); // skip ?
+		if (At("?"))
+		{
+			Next(); // skip ?
+			return std::make_shared<VarArgExpr>();
+		}
+		return std::make_shared<VarArgExpr>(NextType());
+	}
 
-	if (m_Current->Value == "[") { // lambda!
+	if (m_Current->Value == "[")
+	{ // lambda!
 		Next(); // skip [
 		std::vector<std::shared_ptr<IdExpr>> passed;
-		while (!AtEof() && !At("]")) {
+		while (!AtEof() && !At("]"))
+		{
 			passed.push_back(std::dynamic_pointer_cast<IdExpr>(NextPrimExpr()));
 			if (!At("]"))
 				ExpectAndNext(","); // skip ,
@@ -304,7 +325,8 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 
 		ExpectAndNext("("); // skip (
 		std::vector<ASTParameter> parameters;
-		while (!AtEof() && !At(")")) {
+		while (!AtEof() && !At(")"))
+		{
 			parameters.push_back(NextParameter());
 			if (!At(")"))
 				ExpectAndNext(","); // skip ,

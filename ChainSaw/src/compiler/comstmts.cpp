@@ -135,21 +135,56 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 		i++;
 	}
 
+	llvm::Value* valist = nullptr;
+	if (fun()->isVarArg())
+	{
+		auto i8ty = Environment::Builder().getInt8Ty();
+		auto ptrty = llvm::PointerType::get(i8ty, 0);
+		valist = env->SetVarArgs(Environment::Builder().CreateAlloca(ptrty, nullptr, "valist"));
+
+		auto vastartfun = Environment::Module().getFunction("llvm.va_start");
+		if (!vastartfun)
+		{
+			auto funtype = llvm::FunctionType::get(Environment::Builder().getVoidTy(), { ptrty }, false);
+			vastartfun = llvm::Function::Create(funtype, llvm::Function::ExternalLinkage, "llvm.va_start", Environment::Module());
+		}
+
+		auto vaendfun = Environment::Module().getFunction("llvm.va_end");
+		if (!vaendfun)
+		{
+			auto funtype = llvm::FunctionType::get(Environment::Builder().getVoidTy(), { ptrty }, false);
+			vaendfun = llvm::Function::Create(funtype, llvm::Function::ExternalLinkage, "llvm.va_end", Environment::Module());
+		}
+
+		Environment::Builder().CreateCall(vastartfun, { valist });
+	}
+
 	GenIR(e, stmt->Body);
 
 	for (auto& bb : *fun())
 	{
 		auto terminator = bb.getTerminator();
-		if (terminator) continue;
+		if (terminator)
+		{
+			if (fun()->isVarArg())
+				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist })->moveBefore(terminator);
+			continue;
+		}
 		if (fun()->getReturnType()->isVoidTy())
 		{
 			Environment::Builder().SetInsertPoint(&bb);
+			if (fun()->isVarArg())
+				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist });
+
 			Environment::Builder().CreateRetVoid();
 			continue;
 		}
 		if (stmt->IsConstructor)
 		{
 			Environment::Builder().SetInsertPoint(&bb);
+			if (fun()->isVarArg())
+				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist });
+
 			Environment::Builder().CreateRet(e->GetVariable("my").value);
 			continue;
 		}

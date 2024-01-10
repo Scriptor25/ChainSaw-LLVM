@@ -5,30 +5,14 @@
 @csaw_str_len: num (x: str);
 @csaw_vprintf (format: str) ?;
 
-@[llvm]va_start (va: any);
-@[llvm]va_end   (va: any);
-@[llvm]va_copy  (vadst: any, vasrc: any);
-@[llvm]gcroot   (ptrloc: any, metadata: any);
-
 @pow: num (x: num, y: num);
 @sqrt: num (x: num);
-@printf (format: str) ? {
-	any va;
-	va_start(va);
-	csaw_vprintf(format, va);
-	va_end(va);
-}
+@printf (format: str) ? { csaw_vprintf(format, ??); }
 @exp: num (x: num);
 @cos: num (x: num);
 @sin: num (x: num);
 @atan2: num (y: num, x: num);
-@readf: str (format: str) ? {
-	any va;
-	va_start(va);
-	str s = csaw_vreadf(format, va);
-	va_end(va);
-	ret s;
-}
+@readf: str (format: str) ? { ret csaw_vreadf(format, ??); }
 @num: num (x: str) { ret csaw_str_to_num(x); }
 @random: num { ret csaw_random(); }
 @length: num -> str { ret csaw_str_len(my); }

@@ -110,6 +110,9 @@ namespace csaw
 		value_t SetVariable(const std::string& name, const value_t& value);
 		value_t GetVariable(const std::string& name);
 
+		llvm::Value* SetVarArgs(llvm::Value* valist);
+		llvm::Value* GetVarArgs();
+
 		bool IsTopLevel() const { return !m_Parent.get(); }
 		std::filesystem::path Path() const { return m_Path; }
 		void Path(const std::filesystem::path& path) { m_Path = path; }
@@ -121,6 +124,7 @@ namespace csaw
 		std::filesystem::path m_Path;
 		std::shared_ptr<Environment> m_Parent;
 		std::map<std::string, value_t> m_Variables;
+		llvm::Value* m_VarArgs = nullptr;
 
 	public:
 		static void InitEnvironment();
@@ -184,7 +188,6 @@ namespace csaw
 
 	// GenIR for Expressions
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Expr>& expr);
-	//value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<AssignExpr>& expr);
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<BinExpr>& expr);
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<CallExpr>& expr);
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ChrExpr>& expr);
@@ -196,6 +199,7 @@ namespace csaw
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<NumExpr>& expr);
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<StrExpr>& expr);
 	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<UnExpr>& expr);
+	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarArgExpr>& expr);
 
 	// Predefined Binary Operators
 	value_t OpAdd(value_t left, value_t right);
