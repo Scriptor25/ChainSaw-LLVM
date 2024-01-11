@@ -85,12 +85,12 @@ namespace csaw
 		llvm::Function* fun = nullptr;
 		type_t type;
 		std::vector<type_t> argtypes;
-		bool isconstructor;
+		bool isconstructor = false;
 	};
 
 	struct thing_t
 	{
-		llvm::StructType* type;
+		llvm::StructType* type = nullptr;
 		std::vector<std::string> fields;
 	};
 
@@ -148,7 +148,7 @@ namespace csaw
 		static llvm::Module& Module() { return *m_Module; }
 
 	private:
-		static llvm::TargetMachine* SetTargetTriple();
+		static llvm::TargetMachine* SetupTargetMachine();
 		static void CreateGlobalFunction();
 		static void FinishGlobalFunction();
 

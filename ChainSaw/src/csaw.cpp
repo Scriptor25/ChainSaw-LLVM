@@ -96,12 +96,11 @@ int csaw::Run(
 
 	if (!csaw::Parse(env, filename))
 	{
-		std::cerr << "undefined file name '" << filename << "'" << std::endl;
+		std::cerr << "Undefined file name '" << filename << "'" << std::endl;
 		return 1;
 	}
 
 	Environment::Module().setSourceFileName(filename);
-
 	Environment::Module().print(llvm::outs(), nullptr);
 
 	if (flags & "jit")

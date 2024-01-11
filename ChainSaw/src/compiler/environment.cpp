@@ -122,6 +122,9 @@ void csaw::Environment::InitEnvironment()
 	passes.registerFunctionAnalyses(*m_FAM);
 	passes.crossRegisterProxies(*m_LAM, *m_FAM, *m_CGAM, *m_MAM);
 
+	auto triple = llvm::sys::getDefaultTargetTriple();
+	m_Module->setTargetTriple(triple);
+
 	CreateGlobalFunction();
 }
 
@@ -235,7 +238,7 @@ double csaw::Environment::Run()
 		return 1;
 	}
 
-	auto jit = std::move(*builder);
+	std::unique_ptr<llvm::orc::LLJIT> jit = std::move(*builder);
 
 	auto& es = jit->getExecutionSession();
 	auto& dl = jit->getDataLayout();
@@ -243,25 +246,30 @@ double csaw::Environment::Run()
 
 	auto& jd = jit->getMainJITDylib();
 
-	llvm::orc::SymbolMap symbols;
+	llvm::orc::SymbolMap symbols
 	{
-		symbols[mangle("csaw_printf")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_printf), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_readf")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_readf), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_random")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_random), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_str_to_num")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_to_num), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_chr_to_num")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_chr_to_num), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_num_to_str")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_str), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_num_to_chr")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_chr), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_str_cmp")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_cmp), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_str_len")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_len), llvm::JITSymbolFlags() };
-		symbols[mangle("csaw_str_get")] = { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_get), llvm::JITSymbolFlags() };
+		{ mangle("csaw_printf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_printf), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_readf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_readf), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_random"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_random), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_str_to_num"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_to_num), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_chr_to_num"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_chr_to_num), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_num_to_str"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_str), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_num_to_chr"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_num_to_chr), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_str_cmp"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_cmp), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_str_len"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_len), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_str_get"), { llvm::orc::ExecutorAddr::fromPtr(&csaw_str_get), llvm::JITSymbolFlags() } },
+	};
+
+	if (auto error = jd.define(llvm::orc::absoluteSymbols(symbols)))
+	{
+		llvm::errs() << "Failed to define symbol map in Main JIT Dylib: " << error << "\r\n";
+		return 1;
 	}
-	jd.define(llvm::orc::absoluteSymbols(symbols));
 
 	// Add the module to the JIT
-	if (auto err = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
+	if (auto error = jit->addIRModule(llvm::orc::ThreadSafeModule(std::move(m_Module), std::move(m_Context))))
 	{
-		llvm::errs() << "Failed to add module to JIT: " << err << "\r\n";
+		llvm::errs() << "Failed to add module to JIT: " << error << "\r\n";
 		return 1;
 	}
 
@@ -305,12 +313,26 @@ void csaw::Environment::Compile(const std::string& filename)
 	llvm::InitializeAllAsmParsers();
 	llvm::InitializeAllAsmPrinters();
 
-	auto machine = SetTargetTriple();
-	if (!machine)
+	auto& triple = Module().getTargetTriple();
+
+	llvm::outs() << triple << "\r\n";
+	llvm::TargetRegistry::printRegisteredTargetsForVersion(llvm::outs());
+
+	std::string error;
+	auto target = llvm::TargetRegistry::lookupTarget(triple, error);
+
+	if (!target)
 	{
-		llvm::errs() << "Failed to set target triple and get target machine\r\n";
+		llvm::errs() << "Failed to get target for triple '" << triple << "': " << error << "\r\n";
 		return;
 	}
+
+	auto cpu = "generic";
+	auto features = "";
+
+	llvm::TargetOptions opt;
+	auto machine = target->createTargetMachine(triple, cpu, features, opt, llvm::Reloc::PIC_);
+	Module().setDataLayout(machine->createDataLayout());
 
 	std::error_code ec;
 	llvm::raw_fd_ostream dst(filename, ec, llvm::sys::fs::OF_None);
@@ -332,31 +354,6 @@ void csaw::Environment::Compile(const std::string& filename)
 
 	pm.run(Module());
 	dst.flush();
-}
-
-llvm::TargetMachine* csaw::Environment::SetTargetTriple()
-{
-	auto triple = llvm::sys::getDefaultTargetTriple();
-
-	std::string error;
-	auto target = llvm::TargetRegistry::lookupTarget(triple, error);
-
-	if (!target)
-	{
-		llvm::errs() << "Failed to get target for triple '" << triple << "': " << error << "\r\n";
-		return nullptr;
-	}
-
-	auto CPU = "generic";
-	auto FEATURES = "";
-
-	llvm::TargetOptions opt;
-	auto machine = target->createTargetMachine(triple, CPU, FEATURES, opt, llvm::Reloc::PIC_);
-
-	Module().setDataLayout(machine->createDataLayout());
-	Module().setTargetTriple(triple);
-
-	return machine;
 }
 
 void csaw::Environment::CreateGlobalFunction()
