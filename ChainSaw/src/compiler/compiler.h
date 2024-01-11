@@ -138,6 +138,7 @@ namespace csaw
 		static value_t GetNull(const type_t& type);
 
 		static value_t CreateCall(const type_t& memberof, const std::string& name, const std::vector<value_t>& args, bool justAsking = false);
+		static value_t NextVarArg(const type_t& type, llvm::Value* vaptr);
 		static void Optimize(llvm::Function* function) { m_FPM->run(*function, *m_FAM); }
 
 		static double Run();
@@ -148,7 +149,6 @@ namespace csaw
 		static llvm::Module& Module() { return *m_Module; }
 
 	private:
-		static llvm::TargetMachine* SetupTargetMachine();
 		static void CreateGlobalFunction();
 		static void FinishGlobalFunction();
 

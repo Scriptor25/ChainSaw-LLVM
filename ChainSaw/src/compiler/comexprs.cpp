@@ -260,5 +260,5 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 		return env->GetVarArgs();
 
 	auto type = GenIR(expr->Type);
-	return value_t(Environment::Builder().CreateVAArg(env->GetVarArgs(), type.type), type);
+	return Environment::NextVarArg(type, env->GetVarArgs());
 }

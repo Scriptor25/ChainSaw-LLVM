@@ -217,6 +217,43 @@ csaw::value_t csaw::Environment::CreateCall(const type_t& memberof, const std::s
 	return value_t(Environment::Builder().CreateCall(fun(), values), fun.type);
 }
 
+csaw::value_t csaw::Environment::NextVarArg(const type_t& type, llvm::Value* vaptr)
+{
+	////////////////////////////////////
+	// custom varargs implementation: //
+	//        (stolen from C)         //
+	//                                //
+	// va_list = alloca ptr           //
+	// va_start(va_list)              //
+	//                                //
+	// addr0 = load ptr from va_list  //
+	// elem0 = gep i8 from addr0 + 8  //
+	// store elem0 in va_list         //
+	// ?0 = load i32 from addr0       //
+	//                                //
+	// addr1 = load ptr from va_list  //
+	// elem1 = gep i8 from addr1 + 8  //
+	// store elem1 in va_list		  //
+	// ?1 = load i32 from addr1		  //
+	// 								  //
+	// addr2 = load ptr from va_list  //
+	// elem2 = gep i8 from addr2 + 8  //
+	// store elem2 in va_list		  //
+	// ?2 = load i32 from addr2       //
+	//                                //
+	// ...                            //
+	//                                //
+	// va_end(va_list)                //
+	////////////////////////////////////
+
+	auto addr = Builder().CreateLoad(Builder().getPtrTy(), vaptr, "addr");
+	auto elem = Builder().CreateGEP(Builder().getInt8Ty(), addr, { Builder().getInt64(8) }, "elem");
+	Builder().CreateStore(elem, vaptr);
+	auto val = Builder().CreateLoad(type.type, addr, "val");
+
+	return value_t(val, type);
+}
+
 double csaw::Environment::Run()
 {
 	FinishGlobalFunction();
@@ -248,6 +285,8 @@ double csaw::Environment::Run()
 
 	llvm::orc::SymbolMap symbols
 	{
+		{ mangle("csaw_vprintf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_vprintf), llvm::JITSymbolFlags() } },
+		{ mangle("csaw_vreadf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_vreadf), llvm::JITSymbolFlags() } },
 		{ mangle("csaw_printf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_printf), llvm::JITSymbolFlags() } },
 		{ mangle("csaw_readf"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_readf), llvm::JITSymbolFlags() } },
 		{ mangle("csaw_random"),  { llvm::orc::ExecutorAddr::fromPtr(&csaw_random), llvm::JITSymbolFlags() } },

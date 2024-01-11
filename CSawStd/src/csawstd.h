@@ -5,39 +5,38 @@
 #include <random>
 #include <string>
 
-/////////////////////////////////////
-// TODO: implement custom varargs: //
-//        (stolen from C)          //
-//                                 //
-// va_list = alloca ptr            //
-// va_start(va_list)               //
-//                                 //
-// addr0 = load ptr from va_list   //
-// elem0 = gep i8 from addr0 + 8   //
-// store elem0 in va_list          //
-// ?0 = load i32 from addr0        //
-//                                 //
-// addr1 = load ptr from va_list   //
-// elem1 = gep i8 from addr1 + 8   //
-// store elem1 in va_list		   //
-// ?1 = load i32 from addr1		   //
-// 								   //
-// addr2 = load ptr from va_list   //
-// elem2 = gep i8 from addr2 + 8   //
-// store elem2 in va_list		   //
-// ?2 = load i32 from addr2        //
-//                                 //
-// va_end(va_list)                 //
-/////////////////////////////////////
-
-extern "C" void csaw_printf(const char* format, std::va_list va)
+extern "C" void csaw_vprintf(const char* format, std::va_list va)
 {
 	vprintf(format, va);
 }
 
-extern "C" char* csaw_readf(const char* format, std::va_list va)
+extern "C" char* csaw_vreadf(const char* format, std::va_list va)
 {
 	vprintf(format, va);
+
+	std::string line;
+	std::getline(std::cin, line);
+
+	char* str = new char[line.size() + 1];
+	strcpy_s(str, line.length() + 1, line.c_str());
+
+	return str;
+}
+
+extern "C" void csaw_printf(const char* format, ...)
+{
+	std::va_list va;
+	va_start(va, format);
+	vprintf(format, va);
+	va_end(va);
+}
+
+extern "C" char* csaw_readf(const char* format, ...)
+{
+	std::va_list va;
+	va_start(va, format);
+	vprintf(format, va);
+	va_end(va);
 
 	std::string line;
 	std::getline(std::cin, line);
