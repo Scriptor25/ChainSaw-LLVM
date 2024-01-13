@@ -3,46 +3,23 @@
 #include <fstream>
 #include <iostream>
 
-bool csaw::Parse(const std::shared_ptr<Environment>& env, const std::string& filename)
+bool csaw::Parse(const std::string& filename)
 {
 	std::ifstream stream(filename);
 	if (!stream)
 		return false;
 
-	return Parse(env, stream);
+	return ParseStream(stream);
 }
 
-bool csaw::Parse(const std::shared_ptr<Environment>& env, std::istream& stream)
+bool csaw::ParseStream(std::istream& stream)
 {
 	Parser parser(stream);
 	parser.Next();
 	while (!parser.AtEof())
 	{
 		auto stmt = parser.NextStmt(true);
-		GenIR(env, stmt);
 	}
-
-	return true;
-}
-
-bool csaw::ParseInc(const std::shared_ptr<Environment>& env, const std::filesystem::path& filepath)
-{
-	std::ifstream stream(filepath);
-	if (!stream)
-		return false;
-
-	auto prev = env->Path();
-	env->Path(filepath);
-
-	Parser parser(stream);
-	parser.Next();
-	while (!parser.AtEof())
-	{
-		auto stmt = parser.NextStmt(true);
-		GenIR(env, stmt);
-	}
-
-	env->Path(prev);
 
 	return true;
 }

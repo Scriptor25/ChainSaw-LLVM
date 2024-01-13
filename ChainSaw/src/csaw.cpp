@@ -61,9 +61,6 @@ int csaw::Shell(
 {
 	std::string input;
 
-	Environment::InitEnvironment();
-	auto env = std::make_shared<Environment>(path);
-
 	while (true)
 	{
 		std::cout << ">> ";
@@ -76,9 +73,6 @@ int csaw::Shell(
 			std::cout << "\033\143";
 			continue;
 		}
-
-		std::stringstream stream(input);
-		csaw::Parse(env, stream);
 	}
 
 	return 0;
@@ -91,28 +85,6 @@ int csaw::Run(
 	const std::vector<std::string>& flags,
 	const std::map<std::string, std::string>& options)
 {
-	Environment::InitEnvironment();
-	auto env = std::make_shared<Environment>(filename);
-
-	if (!csaw::Parse(env, filename))
-	{
-		std::cerr << "Undefined file name '" << filename << "'" << std::endl;
-		return 1;
-	}
-
-	Environment::Module().setSourceFileName(filename);
-	//Environment::Module().print(llvm::outs(), nullptr);
-
-	if (flags & "jit")
-	{
-		auto code = Environment::Run();
-		std::cout << "Exit Code " << code << std::endl;
-	}
-	else
-	{
-		Environment::Compile("output.o");
-	}
-
 	return 0;
 }
 
