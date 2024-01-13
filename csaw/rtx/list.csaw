@@ -1,0 +1,18 @@
+thing: node;
+thing: node {
+	end: num,
+	next: node,
+	ptr: any,
+}
+
+thing: list {
+	root: node
+}
+
+$list {
+	
+}
+
+@add (e: any) -> list {
+	
+}

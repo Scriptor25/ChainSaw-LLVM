@@ -50,44 +50,7 @@ $camera {
     my.progress = 0;
     printf("Starting...");
 
-    #list tasks;
     for (num j = 0; j < my.image_height; j++) {
-        for (num i = 0; i < my.image_width; i++) {
-            tasks.add([my, world, output, j, i]() {
-                color pixel_color = color(0, 0, 0);
-                for (num sample = 0; sample < my.samples_per_pixel; sample++) {
-                    ray r = my.get_ray(i, j);
-                    pixel_color += my.ray_color(r, my.max_depth, world);
-                }
-                write_color(output, i, j, pixel_color, my.samples_per_pixel);
-
-                printf("\rProgress: %d%% ", floor(100 * (my.progress++) / (my.image_width * my.image_height)));
-            });
-        }
-    }
-
-    parallel(0, tasks.size(), [tasks](i: num) {
-        lambda task = tasks[i];
-        task();
-    });
-
-    pool p = pool(8, tasks);
-    p.join();#
-
-    parallel(0, my.image_height, [my, world, output](j: num) {
-        parallel(0, my.image_width, [my, world, output, j](i: num) {
-            color pixel_color = color(0, 0, 0);
-            parallel(0, my.samples_per_pixel, [my, world, output, j, i, pixel_color](s: num) {
-                ray r = my.get_ray(i, j);
-                pixel_color += my.ray_color(r, my.max_depth, world);
-            });
-            write_color(output, i, j, pixel_color, my.samples_per_pixel);
-
-            printf("\rProgress: %d%% ", floor(100 * (my.progress++) / (my.image_width * my.image_height)));
-        });
-    });
-
-    #for (num j = 0; j < my.image_height; j++) {
         for (num i = 0; i < my.image_width; i++) {
             color pixel_color = color(0, 0, 0);
             for (num sample = 0; sample < my.samples_per_pixel; sample++) {
@@ -98,7 +61,7 @@ $camera {
 
             printf("\rProgress: %d%% ", floor(100 * (my.progress++) / (my.image_width * my.image_height)));
         }
-    }#
+    }
 
     printf("\rDone.                 %n");
     output.write("png", "output/rtx.png");

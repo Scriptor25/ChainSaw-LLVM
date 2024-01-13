@@ -38,7 +38,8 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<AliasStmt>& stmt)
 {
-	throw "TODO";
+	auto origin = GenIR(stmt->Origin);
+	return Environment::CreateAlias(stmt->Alias, origin);
 }
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<EnclosedStmt>& stmt)
@@ -51,29 +52,26 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ForStmt>& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
-	auto bcondition = llvm::BasicBlock::Create(Environment::Context(), "for_condition");
-	auto bloop = llvm::BasicBlock::Create(Environment::Context(), "for_loop");
-	auto bmerge = llvm::BasicBlock::Create(Environment::Context(), "for_merge");
+	auto bheader = llvm::BasicBlock::Create(Environment::Context(), "loop.header", fun);
+	auto bbody = llvm::BasicBlock::Create(Environment::Context(), "loop.body", fun);
+	auto bexit = llvm::BasicBlock::Create(Environment::Context(), "loop.exit", fun);
 
 	auto e = std::make_shared<Environment>(env);
 
 	GenIR(e, stmt->Begin);
-	Environment::Builder().CreateBr(bcondition);
+	Environment::Builder().CreateBr(bheader);
 
-	fun->insert(fun->end(), bcondition);
-	Environment::Builder().SetInsertPoint(bcondition);
+	Environment::Builder().SetInsertPoint(bheader);
 	auto vcondition = GenIR(e, stmt->Condition);
-	vcondition.value = NumToBool(vcondition());
-	Environment::Builder().CreateCondBr(vcondition(), bloop, bmerge);
+	auto condition = NumToBool(vcondition());
+	Environment::Builder().CreateCondBr(condition, bbody, bexit);
 
-	fun->insert(fun->end(), bloop);
-	Environment::Builder().SetInsertPoint(bloop);
+	Environment::Builder().SetInsertPoint(bbody);
 	GenIR(e, stmt->Body);
 	GenIR(e, stmt->Loop);
-	Environment::Builder().CreateBr(bcondition);
+	Environment::Builder().CreateBr(bheader);
 
-	fun->insert(fun->end(), bmerge);
-	Environment::Builder().SetInsertPoint(bmerge);
+	Environment::Builder().SetInsertPoint(bexit);
 }
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<FunStmt>& stmt)
@@ -120,7 +118,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	if (!(fun()->empty()))
 		throw "cannot redefine function";
 
-	auto entry = llvm::BasicBlock::Create(Environment::Context(), "fun_entry", fun());
+	auto entry = llvm::BasicBlock::Create(Environment::Context(), "entry", fun());
 	Environment::Builder().SetInsertPoint(entry);
 
 	auto e = std::make_shared<Environment>(env);
@@ -135,59 +133,28 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 		i++;
 	}
 
-	llvm::Value* valist = nullptr;
-	if (fun()->isVarArg())
-	{
-		auto i8ty = Environment::Builder().getInt8Ty();
-		auto ptrty = llvm::PointerType::get(i8ty, 0);
-		valist = env->SetVarArgs(Environment::Builder().CreateAlloca(ptrty, nullptr, "valist"));
-
-		auto vastartfun = Environment::Module().getFunction("llvm.va_start");
-		if (!vastartfun)
-		{
-			auto funtype = llvm::FunctionType::get(Environment::Builder().getVoidTy(), { ptrty }, false);
-			vastartfun = llvm::Function::Create(funtype, llvm::Function::ExternalLinkage, "llvm.va_start", Environment::Module());
-		}
-
-		auto vaendfun = Environment::Module().getFunction("llvm.va_end");
-		if (!vaendfun)
-		{
-			auto funtype = llvm::FunctionType::get(Environment::Builder().getVoidTy(), { ptrty }, false);
-			vaendfun = llvm::Function::Create(funtype, llvm::Function::ExternalLinkage, "llvm.va_end", Environment::Module());
-		}
-
-		Environment::Builder().CreateCall(vastartfun, { valist });
-	}
-
 	GenIR(e, stmt->Body);
 
 	for (auto& bb : *fun())
 	{
 		auto terminator = bb.getTerminator();
 		if (terminator)
-		{
-			if (fun()->isVarArg())
-				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist })->moveBefore(terminator);
 			continue;
-		}
+
 		if (fun()->getReturnType()->isVoidTy())
 		{
 			Environment::Builder().SetInsertPoint(&bb);
-			if (fun()->isVarArg())
-				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist });
-
 			Environment::Builder().CreateRetVoid();
 			continue;
 		}
+
 		if (stmt->IsConstructor)
 		{
 			Environment::Builder().SetInsertPoint(&bb);
-			if (fun()->isVarArg())
-				Environment::Builder().CreateCall(Environment::Module().getFunction("llvm.va_end"), { valist });
-
 			Environment::Builder().CreateRet(e->GetVariable("my").value);
 			continue;
 		}
+
 		throw "missing non-void terminator";
 	}
 
@@ -205,9 +172,9 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IfStmt>& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
-	auto bthen = llvm::BasicBlock::Create(Environment::Context(), "if_then", fun);
-	auto belse = llvm::BasicBlock::Create(Environment::Context(), "if_else");
-	auto bmerge = llvm::BasicBlock::Create(Environment::Context(), "if_merge");
+	auto bthen = llvm::BasicBlock::Create(Environment::Context(), "if.then", fun);
+	auto belse = llvm::BasicBlock::Create(Environment::Context(), "if.else");
+	auto bexit = llvm::BasicBlock::Create(Environment::Context(), "if.exit");
 
 	auto vcondition = GenIR(env, stmt->Condition);
 	vcondition.value = NumToBool(vcondition());
@@ -216,17 +183,17 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	Environment::Builder().SetInsertPoint(bthen);
 	GenIR(env, stmt->Then);
 	if (!bthen->getTerminator())
-		Environment::Builder().CreateBr(bmerge);
+		Environment::Builder().CreateBr(bexit);
 
 	fun->insert(fun->end(), belse);
 	Environment::Builder().SetInsertPoint(belse);
 	if (stmt->Else)
 		GenIR(env, stmt->Else);
 	if (!belse->getTerminator())
-		Environment::Builder().CreateBr(bmerge);
+		Environment::Builder().CreateBr(bexit);
 
-	fun->insert(fun->end(), bmerge);
-	Environment::Builder().SetInsertPoint(bmerge);
+	fun->insert(fun->end(), bexit);
+	Environment::Builder().SetInsertPoint(bexit);
 }
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IncStmt>& stmt)
@@ -241,7 +208,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<RetStmt>& stmt)
 {
-	if (!stmt)
+	if (!stmt->Value)
 		Environment::Builder().CreateRetVoid();
 	else
 		Environment::Builder().CreateRet(GenIR(env, stmt->Value).value);
@@ -252,20 +219,32 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	if (stmt->Fields.empty())
 	{
 		auto strtype = llvm::StructType::create(Environment::Context(), stmt->Name);
-		Environment::CreateType(stmt->Name, stmt->Group, strtype, {});
+		Environment::CreateType(stmt->Name, strtype, {});
 		return;
 	}
 
 	std::vector<llvm::Type*> elements;
-	std::vector<std::string> fields;
+	std::vector<std::pair<std::string, type_t>> fields;
 	for (auto& field : stmt->Fields)
 	{
-		elements.push_back(GenIR(field.Type).type);
-		fields.push_back(field.Name);
+		auto type = GenIR(field.Type);
+		elements.push_back(type.type);
+		fields.push_back({ field.Name, type });
 	}
 
-	auto strtype = llvm::StructType::create(Environment::Context(), elements, stmt->Name);
-	Environment::CreateType(stmt->Name, stmt->Group, strtype, fields);
+	auto type = Environment::GetType(stmt->Name);
+	llvm::StructType* strtype;
+	if (!type)
+		strtype = llvm::StructType::create(Environment::Context(), stmt->Name);
+	else if (type->fields.empty())
+		strtype = type->type;
+	else
+	{
+		throw;
+	}
+
+	strtype->setBody(elements);
+	Environment::CreateType(stmt->Name, strtype, fields);
 }
 
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarStmt>& stmt)
@@ -292,23 +271,20 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<WhileStmt>& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
-	auto bcondition = llvm::BasicBlock::Create(Environment::Context(), "while_condition");
-	auto bloop = llvm::BasicBlock::Create(Environment::Context(), "while_loop");
-	auto bmerge = llvm::BasicBlock::Create(Environment::Context(), "while_merge");
+	auto bheader = llvm::BasicBlock::Create(Environment::Context(), "loop.header", fun);
+	auto bbody = llvm::BasicBlock::Create(Environment::Context(), "loop.body", fun);
+	auto bexit = llvm::BasicBlock::Create(Environment::Context(), "loop.exit", fun);
 
-	Environment::Builder().CreateBr(bcondition);
+	Environment::Builder().CreateBr(bheader);
 
-	fun->insert(fun->end(), bcondition);
-	Environment::Builder().SetInsertPoint(bcondition);
+	Environment::Builder().SetInsertPoint(bheader);
 	auto vcondition = GenIR(env, stmt->Condition);
-	vcondition.value = NumToBool(vcondition());
-	Environment::Builder().CreateCondBr(vcondition(), bloop, bmerge);
+	auto condition = NumToBool(vcondition());
+	Environment::Builder().CreateCondBr(condition, bbody, bexit);
 
-	fun->insert(fun->end(), bloop);
-	Environment::Builder().SetInsertPoint(bloop);
+	Environment::Builder().SetInsertPoint(bbody);
 	GenIR(env, stmt->Body);
-	Environment::Builder().CreateBr(bcondition);
+	Environment::Builder().CreateBr(bheader);
 
-	fun->insert(fun->end(), bmerge);
-	Environment::Builder().SetInsertPoint(bmerge);
+	Environment::Builder().SetInsertPoint(bexit);
 }

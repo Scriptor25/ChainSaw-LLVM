@@ -2,57 +2,60 @@ inc "../std/std.csaw";
 inc "complex.csaw";
 
 num MAX_ITER = 100;
-num SAMPLES  =  10;
+num SAMPLES  = 100;
 num WIDTH    =  80;
 num HEIGHT   =  40;
 str LUT      = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 
-@mandel: num (z0: complex, max: num);
-@lookupChr: chr (p: num);
-
-@main: num {
-
-    num xc = num(readf("xc: "));     ## -0.5
-    num yc = num(readf("yc: "));     ##    0
-    num size = num(readf("size: ")); ##    2
-
-    printf("Generating Mandelbrot:\r\n");
-    for (num j = 0; j < HEIGHT; j++) {
-        for (num i = 0; i < WIDTH; i++) {
-            num n = 0;
-            for (num s = 0; s < SAMPLES; s++) {
-                num x0 = xc - size / 2 + size * (i + random() - 0.5) / WIDTH;
-                num y0 = yc - size / 2 + size * (j + random() - 0.5) / HEIGHT;
-                ## num x0 = xc - size / 2 + size * i / WIDTH;
-                ## num y0 = yc - size / 2 + size * j / HEIGHT;
-                complex z0 = complex(x0, y0);
-                num m = mandel(z0, MAX_ITER);
-                n += m;
-            }
-            n /= (SAMPLES * MAX_ITER);
-            printf("%c", lookupChr(n));
-        }
-        printf("\r\n");
-    }
-
-    printf("Done!\r\n");
-
-    ret 0;
+@lookup: chr (p: num) {
+    num size = LUT.length();
+    num idx = clamp(floor(p * size), 0, size - 1);
+    ret LUT[size - 1 - idx];
 }
 
 @mandel: num (z0: complex, max: num) {
     complex z = z0;
     for (num t = 0; t < max; t++) {
-        if (z.abs() > 2.0) {
+        if (z.abs() > 2.0)
             ret t;
-        }
         z = z.square() + z0;
     }
     ret max;
 }
 
-@lookupChr: chr (p: num) {
-    num size = LUT.length();
-    num idx = clamp(floor(p * size), 0, size - 1);
-    ret LUT[idx];
+@samples_loop: num (xc: num, yc: num, size: num, j: num, i: num, s: num) {
+	num x0 = xc - size / 2 + size * (i + csaw_random() - 0.5) / WIDTH;
+	num y0 = yc - size / 2 + size * (j + csaw_random() - 0.5) / HEIGHT;
+	## num x0 = xc - size / 2 + size * i / WIDTH;
+	## num y0 = yc - size / 2 + size * j / HEIGHT;
+	complex z0 = complex(x0, y0);
+	ret mandel(z0, MAX_ITER);
+}
+
+@horizontal_loop (xc: num, yc: num, size: num, j: num, i: num) {
+	num n = 0;
+	for (num s = 0; s < SAMPLES; s++)
+		n += samples_loop(xc, yc, size, j, i, s);
+	n /= (SAMPLES * MAX_ITER);
+	csaw_printf("%c", lookup(n));
+}
+
+@vertical_loop (xc: num, yc: num, size: num, j: num) {
+	for (num i = 0; i < WIDTH; i++)
+		horizontal_loop(xc, yc, size, j, i);
+	csaw_printf("\r\n");
+}
+
+@main: num {
+
+    num xc = num(csaw_readf("xc: "));     ## -0.5
+    num yc = num(csaw_readf("yc: "));     ##    0
+    num size = num(csaw_readf("size: ")); ##    2
+
+    csaw_printf("Generating Mandelbrot:\r\n");
+    for (num j = 0; j < HEIGHT; j++)
+		vertical_loop(xc, yc, size, j);
+    csaw_printf("Done!\r\n");
+
+    ret 0;
 }

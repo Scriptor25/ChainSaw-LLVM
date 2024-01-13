@@ -12,9 +12,10 @@
 @atan: num (x: num);
 @atan2: num (y: num, x: num);
 
-@csaw_printf (format: str, va: any);
-@csaw_readf: str (format: str, va: any);
+@csaw_printf (format: str) ?;
+@csaw_readf: str (format: str) ?;
 @csaw_random: num;
+@csaw_infinity: num;
 @csaw_str_to_num: num (x: str);
 @csaw_chr_to_num: num (x: chr);
 @csaw_num_to_str: str (x: num);
@@ -23,9 +24,6 @@
 @csaw_str_len: num (x: str);
 @csaw_str_get: chr (x: str, i: num);
 
-@printf (format: str) ? { csaw_printf(format, ??); }
-@readf: str (format: str) ? { ret csaw_readf(format, ??); }
-@random: num { ret csaw_random(); }
 @num: num (x: str) { ret csaw_str_to_num(x); }
 @num: num (x: chr) { ret csaw_chr_to_num(x); }
 @str: str (x: num) { ret csaw_num_to_str(x); }

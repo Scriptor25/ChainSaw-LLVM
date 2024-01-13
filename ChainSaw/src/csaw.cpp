@@ -101,7 +101,7 @@ int csaw::Run(
 	}
 
 	Environment::Module().setSourceFileName(filename);
-	Environment::Module().print(llvm::outs(), nullptr);
+	//Environment::Module().print(llvm::outs(), nullptr);
 
 	if (flags & "jit")
 	{

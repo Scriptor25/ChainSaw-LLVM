@@ -16,28 +16,29 @@ namespace csaw
 	{
 		type_t()
 		{
-			this->type = this->element = nullptr;
 		}
 
-		type_t(llvm::Type* type)
+		type_t(const std::string& name, llvm::Type* type)
 		{
+			this->name = name;
 			this->type = type;
-			this->element = nullptr;
 		}
 
-		type_t(llvm::Type* type, llvm::Type* element)
+		type_t(const std::string& name, llvm::Type* type, llvm::Type* element)
 		{
+			this->name = name;
 			this->type = type;
 			this->element = element;
 		}
 
-		llvm::Type* type;
-		llvm::Type* element;
+		std::string name;
+		llvm::Type* type = nullptr;
+		llvm::Type* element = nullptr;
 	};
 
 	inline bool operator!=(const type_t& a, const type_t& b)
 	{
-		return a.type != b.type || (!(a.type->isPointerTy() && !a.element) && a.element != b.element);
+		return a.name != b.name || a.type != b.type || (!(a.type->isPointerTy() && !a.element) && a.element != b.element);
 	}
 
 	inline bool operator<(const type_t& a, const type_t& b)
@@ -53,13 +54,6 @@ namespace csaw
 	{
 		value_t()
 		{
-			value = nullptr;
-		}
-
-		value_t(llvm::Value* value)
-		{
-			this->value = value;
-			this->ptrType = { value->getType(), nullptr };
 		}
 
 		value_t(llvm::Value* value, type_t ptrType)
@@ -72,7 +66,7 @@ namespace csaw
 		bool operator!() const { return !value; }
 		operator bool() const { return value; }
 
-		llvm::Value* value;
+		llvm::Value* value = nullptr;
 		type_t ptrType;
 	};
 
@@ -91,7 +85,7 @@ namespace csaw
 	struct thing_t
 	{
 		llvm::StructType* type = nullptr;
-		std::vector<std::string> fields;
+		std::vector<std::pair<std::string, type_t>> fields;
 	};
 
 	class Environment
@@ -131,9 +125,14 @@ namespace csaw
 
 		static void CreateFunction(const type_t& memberof, const std::string& name, const fun_t& fun);
 		static fun_t GetFunction(const type_t& memberof, const std::string& name, const std::vector<type_t>& argtypes);
-		static void CreateType(const std::string& name, const std::string& group, llvm::StructType* type, const std::vector<std::string>& fields);
-		static const thing_t* GetType(const std::string& name, const std::string& group);
+
+		static void CreateType(const std::string& name, llvm::StructType* type, const std::vector<std::pair<std::string, type_t>>& fields);
+		static const thing_t* GetType(const std::string& name);
 		static const thing_t* GetType(llvm::StructType* strtype);
+
+		static void CreateAlias(const std::string& alias, const type_t& origin);
+		static bool HasAlias(const std::string& alias);
+		static const type_t& GetAlias(const std::string& alias);
 
 		static value_t GetNull(const type_t& type);
 
@@ -154,7 +153,8 @@ namespace csaw
 
 	private:
 		static std::map<type_t, std::map<std::string, std::vector<fun_t>>> m_Functions;
-		static std::map<std::string, std::map<std::string, thing_t>> m_Types;
+		static std::map<std::string, thing_t> m_Types;
+		static std::map<std::string, type_t> m_Alias;
 
 		static std::unique_ptr<llvm::LLVMContext> m_Context;
 		static std::unique_ptr<llvm::IRBuilder<>> m_Builder;
@@ -171,6 +171,7 @@ namespace csaw
 
 	// GenIR for Types
 	type_t GenIR(const std::shared_ptr<ASTType>& type);
+	type_t GenIR(const std::string& type);
 	type_t GenIR(const std::shared_ptr<ASTArrayType>& type);
 
 	// GenIR for Statements

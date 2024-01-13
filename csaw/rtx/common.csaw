@@ -1,9 +1,17 @@
+## STD
+@csaw_infinity: num;
+@csaw_random: num;
+@floor: num (x: num);
+@sqrt: num (x: num);
+@abs: num (x: num);
+@printf: num (format: str) ?;
+
 thing: num_ptr {
     value: num
 }
 
 ## Constants
-num infinity = infinity();
+num infinity = csaw_infinity();
 num pi = 3.1415926535897932385;
 
 ## Utility Functions
@@ -17,6 +25,10 @@ num pi = 3.1415926535897932385;
 
 @degrees_to_radians: num (degrees: num) {
     ret degrees * pi / 180.0;
+}
+
+@random: num {
+	ret csaw_random();
 }
 
 @random: num (min: num, max: num) {
@@ -34,11 +46,12 @@ num pi = 3.1415926535897932385;
 }
 
 ## Includes
-inc "../std/pool.csaw";
 inc "bool.csaw";
 inc "interval.csaw";
 inc "vec3.csaw";
+inc "img.csaw";
 inc "color.csaw";
+inc "list.csaw";
 inc "perlin.csaw";
 inc "texture.csaw";
 inc "ray.csaw";

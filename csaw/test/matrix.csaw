@@ -24,18 +24,18 @@ num step_i = 0;
         }
     }
 
-    printf("Matrix A:%n");
+    printf("Matrix A:\r\n");
     for (num i = 0; i < MAX; i++) {
         for (num j = 0; j < MAX; j++)
             printf("%s ", matA[i][j]);
-        printf("%n");
+        printf("\r\n");
     }
 
-    printf("%nMatrix B:%n");
+    printf("\r\nMatrix B:\r\n");
     for (num i = 0; i < MAX; i++) {
         for (num j = 0; j < MAX; j++)
-            printf("%s ", matB[i][j]);
-        printf("%n");
+            printf("\r\n ", matB[i][j]);
+        printf("\r\n");
     }
 
     thrd[MAX_THREAD] threads;
@@ -45,11 +45,11 @@ num step_i = 0;
     for (num i = 0; i < MAX_THREAD; i++)
         threads[i].join();
     
-    printf("%nMultiplication of A and B:%n");
+    printf("\r\nMultiplication of A and B:\r\n");
     for (num i = 0; i < MAX; i++) {
         for (num j = 0; j < MAX; j++)
             printf("%s ", matC[i][j]);
-        printf("%n");
+        printf("\r\n");
     }
 
     ret 0;

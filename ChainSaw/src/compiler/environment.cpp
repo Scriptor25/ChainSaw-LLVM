@@ -12,12 +12,14 @@
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar/DCE.h>
 #include <llvm/Transforms/Scalar/GVN.h>
+#include <llvm/Transforms/Scalar/LoopUnrollPass.h>
 #include <llvm/Transforms/Scalar/Reassociate.h>
 #include <llvm/Transforms/Scalar/SimplifyCFG.h>
 #include <llvm/Transforms/Utils/Mem2Reg.h>
 
 std::map<csaw::type_t, std::map<std::string, std::vector<csaw::fun_t>>> csaw::Environment::m_Functions;
-std::map<std::string, std::map<std::string, csaw::thing_t>> csaw::Environment::m_Types;
+std::map<std::string, csaw::thing_t> csaw::Environment::m_Types;
+std::map<std::string, csaw::type_t> csaw::Environment::m_Alias;
 
 std::unique_ptr<llvm::LLVMContext> csaw::Environment::m_Context;
 std::unique_ptr<llvm::IRBuilder<>> csaw::Environment::m_Builder;
@@ -116,6 +118,7 @@ void csaw::Environment::InitEnvironment()
 	m_FPM->addPass(llvm::SimplifyCFGPass());
 	m_FPM->addPass(llvm::DCEPass());
 	m_FPM->addPass(llvm::LoopSimplifyPass());
+	m_FPM->addPass(llvm::LoopUnrollPass());
 
 	llvm::PassBuilder passes;
 	passes.registerModuleAnalyses(*m_MAM);
@@ -156,25 +159,41 @@ csaw::fun_t csaw::Environment::GetFunction(const type_t& memberof, const std::st
 	return fun_t();
 }
 
-void csaw::Environment::CreateType(const std::string& name, const std::string& group, llvm::StructType* type, const std::vector<std::string>& fields)
+void csaw::Environment::CreateType(const std::string& name, llvm::StructType* type, const std::vector<std::pair<std::string, type_t>>& fields)
 {
-	m_Types[group][name] = { type, fields };
+	m_Types[name] = { type, fields };
 }
 
-const csaw::thing_t* csaw::Environment::GetType(const std::string& name, const std::string& group)
+const csaw::thing_t* csaw::Environment::GetType(const std::string& name)
 {
-	if (!m_Types.contains(group) || !m_Types[group].contains(name))
+	if (!m_Types.contains(name))
 		return nullptr;
-	return &m_Types[group][name];
+	return &m_Types[name];
 }
 
 const csaw::thing_t* csaw::Environment::GetType(llvm::StructType* strtype)
 {
-	for (auto& group : m_Types)
-		for (auto& type : group.second)
-			if (type.second.type == strtype)
-				return &type.second;
+	for (auto& type : m_Types)
+		if (type.second.type == strtype)
+			return &type.second;
 	return nullptr;
+}
+
+void csaw::Environment::CreateAlias(const std::string& alias, const type_t& origin)
+{
+	m_Alias[alias] = origin;
+}
+
+bool csaw::Environment::HasAlias(const std::string& alias)
+{
+	return m_Alias.contains(alias);
+}
+
+const csaw::type_t& csaw::Environment::GetAlias(const std::string& alias)
+{
+	if (HasAlias(alias))
+		return GetAlias(m_Alias[alias].name);
+	return GenIR(alias);
 }
 
 csaw::value_t csaw::Environment::GetNull(const type_t& type)
@@ -186,7 +205,7 @@ csaw::value_t csaw::Environment::GetNull(const type_t& type)
 		return value_t(ptr, type);
 	}
 
-	return llvm::Constant::getNullValue(type.type);
+	return value_t(llvm::Constant::getNullValue(type.type), type);
 }
 
 csaw::value_t csaw::Environment::CreateCall(const type_t& memberof, const std::string& name, const std::vector<value_t>& args, bool justAsking)
@@ -204,6 +223,7 @@ csaw::value_t csaw::Environment::CreateCall(const type_t& memberof, const std::s
 	{
 		if (justAsking)
 			return value_t();
+
 		llvm::errs() << "Undefined function '" << name << "'\r\n";
 		throw;
 	}
@@ -246,12 +266,18 @@ csaw::value_t csaw::Environment::NextVarArg(const type_t& type, llvm::Value* vap
 	// va_end(va_list)                //
 	////////////////////////////////////
 
-	auto addr = Builder().CreateLoad(Builder().getPtrTy(), vaptr, "addr");
-	auto elem = Builder().CreateGEP(Builder().getInt8Ty(), addr, { Builder().getInt64(8) }, "elem");
-	Builder().CreateStore(elem, vaptr);
-	auto val = Builder().CreateLoad(type.type, addr, "val");
+#define CSAW_CUSTOM_VAARG
+#ifdef CSAW_CUSTOM_VAARG
+	auto addr = Builder().CreateGEP(Builder().getInt8Ty(), vaptr, { Builder().getInt64(8) }, "addr");
+	auto current = Builder().CreateLoad(Builder().getPtrTy(), addr, "current");
+	auto value = Builder().CreateLoad(type.type, current, "value");
+	auto currentaddr = Builder().CreateGEP(Builder().getInt64Ty(), current, { Builder().getInt64(1) }, "currentaddr");
+	Builder().CreateStore(currentaddr, current);
+#else
+	auto value = Builder().CreateVAArg(vaptr, type.type);
+#endif
 
-	return value_t(val, type);
+	return value_t(value, type);
 }
 
 double csaw::Environment::Run()
@@ -354,8 +380,8 @@ void csaw::Environment::Compile(const std::string& filename)
 
 	auto& triple = Module().getTargetTriple();
 
-	llvm::outs() << triple << "\r\n";
-	llvm::TargetRegistry::printRegisteredTargetsForVersion(llvm::outs());
+	//llvm::outs() << triple << "\r\n";
+	//llvm::TargetRegistry::printRegisteredTargetsForVersion(llvm::outs());
 
 	std::string error;
 	auto target = llvm::TargetRegistry::lookupTarget(triple, error);

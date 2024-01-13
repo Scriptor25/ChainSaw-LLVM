@@ -1,9 +1,0 @@
-@csaw_vprintf (format: str, va: any);
-@csaw_printf (format: str) ?;
-@printf (format: str) ? {
-	csaw_vprintf(format, ??);
-}
-
-@main: num {
-	ret 0;
-}

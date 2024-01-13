@@ -6,36 +6,45 @@ csaw::type_t csaw::GenIR(const std::shared_ptr<ASTType>& type)
 		return GenIR(t);
 
 	if (!type)
-		return Environment::Builder().getVoidTy();
+		return type_t("", Environment::Builder().getVoidTy());
 
+	return GenIR(type->Name);
+}
+
+csaw::type_t csaw::GenIR(const std::string& type)
+{
 	// any = opaque*
 	// num = double
 	// chr = i8
 	// str = i8*
 	// {}  = {}*
 
-	if (type->Name == "any")
-		return type_t(Environment::Builder().getPtrTy());
-	if (type->Name == "num")
-		return type_t(Environment::Builder().getDoubleTy());
-	if (type->Name == "chr")
-		return type_t(Environment::Builder().getInt8Ty());
-	if (type->Name == "str")
+	if (Environment::HasAlias(type))
+		return Environment::GetAlias(type);
+
+	if (type == "any")
+		return type_t(type, Environment::Builder().getPtrTy());
+	if (type == "num")
+		return type_t(type, Environment::Builder().getDoubleTy());
+	if (type == "chr")
+		return type_t(type, Environment::Builder().getInt8Ty());
+	if (type == "str")
 	{
 		auto i8ty = Environment::Builder().getInt8Ty();
-		return type_t(llvm::PointerType::get(i8ty, 0), i8ty);
+		return type_t(type, llvm::PointerType::get(i8ty, 0), i8ty);
 	}
 
-	if (auto t = llvm::StructType::getTypeByName(Environment::Context(), type->Name))
-		return type_t(llvm::PointerType::get(t, 0), t);
+	if (auto t = Environment::GetType(type))
+		return type_t(type, llvm::PointerType::get(t->type, 0), t->type);
 
-	throw "TODO";
+	llvm::errs() << "Undefined type '" << type << "'\r\n";
+	throw;
 }
 
 csaw::type_t csaw::GenIR(const std::shared_ptr<ASTArrayType>& type)
 {
 	auto t = GenIR(type->Type);
-	return type_t(llvm::ArrayType::get(t.type, type->Size), t.element);
+	return type_t(t.name, llvm::ArrayType::get(t.type, type->Size), t.element);
 }
 
 llvm::Value* csaw::BoolToNum(llvm::Value* value)

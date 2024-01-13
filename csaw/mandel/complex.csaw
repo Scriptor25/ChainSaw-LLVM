@@ -81,7 +81,7 @@ $complex (real: num, imaginary: num) {
 }
 
 @out (c: complex) {
-    printf("%f %s%fi", c.real, (c.imaginary < 0 ? "" : "+ "), c.imaginary);
+    csaw_printf("%f %s%fi", c.real, (c.imaginary < 0 ? "" : "+ "), c.imaginary);
 }
 
 @exp: complex (z: complex) {

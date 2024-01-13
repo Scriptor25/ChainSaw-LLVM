@@ -43,13 +43,18 @@ static csaw::value_t Assign(const std::shared_ptr<csaw::Environment>& env, const
 
 		unsigned int i = 0;
 		for (; i < type->fields.size(); i++)
-			if (type->fields[i] == e->Member)
+			if (type->fields[i].first == e->Member)
 				break;
+
 		if (i == type->fields.size())
-			throw "undefined field";
+		{
+			llvm::errs() << "Undefined field '" << e->Member << "'\r\n";
+			throw;
+		}
 
 		auto ptr = csaw::Environment::Builder().CreateStructGEP(strtype, object(), i);
-		return csaw::Environment::Builder().CreateStore(value(), ptr);
+		csaw::Environment::Builder().CreateStore(value(), ptr);
+		return value;
 	}
 
 	throw "TODO";
@@ -126,7 +131,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 		args.push_back(GenIR(env, arg));
 
 	if (auto e = std::dynamic_pointer_cast<IdExpr>(expr->Function))
-		return Environment::CreateCall({}, e->Value, args);
+		return Environment::CreateCall(type_t(), e->Value, args);
 
 	if (auto e = std::dynamic_pointer_cast<MemExpr>(expr->Function))
 	{
@@ -140,7 +145,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ChrExpr>& expr)
 {
-	return { llvm::ConstantInt::get(Environment::Builder().getInt8Ty(), expr->Value, false) };
+	return value_t(Environment::Builder().getInt8(expr->Value), type_t("chr", Environment::Builder().getInt8Ty()));
 }
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ConExpr>& expr)
@@ -172,7 +177,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	phi->addIncoming(vthen(), bthen);
 	phi->addIncoming(velse(), belse);
 
-	return phi;
+	return value_t(phi, vthen.ptrType);
 }
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IdExpr>& expr)
@@ -207,26 +212,30 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 
 	unsigned int i = 0;
 	for (; i < type->fields.size(); i++)
-		if (type->fields[i] == expr->Member)
+		if (type->fields[i].first == expr->Member)
 			break;
+
 	if (i == type->fields.size())
-		throw "undefined field";
+	{
+		llvm::errs() << "Undefined field '" << expr->Member << "'\r\n";
+		throw;
+	}
 
 	auto ptr = Environment::Builder().CreateStructGEP(strtype, object(), i);
-	return value_t(Environment::Builder().CreateLoad(strtype->getElementType(i), ptr));
+	return value_t(Environment::Builder().CreateLoad(strtype->getElementType(i), ptr), type->fields[i].second);
 }
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<NumExpr>& expr)
 {
-	auto num = llvm::ConstantFP::get(Environment::Builder().getDoubleTy(), expr->Value);
-	return value_t(num);
+	auto dty = Environment::Builder().getDoubleTy();
+	return value_t(llvm::ConstantFP::get(dty, expr->Value), type_t("num", dty));
 }
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<StrExpr>& expr)
 {
 	auto i8 = Environment::Builder().getInt8Ty();
 	auto str = Environment::Builder().CreateGlobalStringPtr(expr->Value, "str");
-	return value_t(str, type_t(str->getType(), i8));
+	return value_t(str, type_t("str", str->getType(), i8));
 }
 
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<UnExpr>& expr)
@@ -237,6 +246,8 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	if (value)
 		return value;
 
+	auto dty = Environment::Builder().getDoubleTy();
+
 	if (expr->Operator == "!")
 		value = OpNot(val);
 	else if (expr->Operator == "-")
@@ -244,9 +255,9 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	else if (expr->Operator == "~")
 		value = OpInv(val);
 	else if (expr->Operator == "++")
-		return Assign(env, expr->Value, OpAdd(val, { llvm::ConstantFP::get(Environment::Builder().getDoubleTy(), 1.0) }));
+		return Assign(env, expr->Value, OpAdd(val, value_t(llvm::ConstantFP::get(dty, 1.0), type_t("num", dty))));
 	else if (expr->Operator == "--")
-		return Assign(env, expr->Value, OpSub(val, { llvm::ConstantFP::get(Environment::Builder().getDoubleTy(), 1.0) }));
+		return Assign(env, expr->Value, OpSub(val, value_t(llvm::ConstantFP::get(dty, 1.0), type_t("num", dty))));
 
 	if (!value)
 		throw "TODO";
@@ -257,7 +268,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarArgExpr>& expr)
 {
 	if (!expr->Type)
-		return env->GetVarArgs();
+		return value_t(env->GetVarArgs(), type_t("any", Environment::Builder().getPtrTy()));
 
 	auto type = GenIR(expr->Type);
 	return Environment::NextVarArg(type, env->GetVarArgs());

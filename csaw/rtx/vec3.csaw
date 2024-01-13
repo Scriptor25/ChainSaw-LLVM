@@ -38,30 +38,30 @@ $vec3 (x: num, y: num, z: num) {
     else if (i == 2) my.z = v;
 }
 
-@(+): vec3 (v: vec3) -> vec3 {
+@(+=): vec3 (v: vec3) -> vec3 {
     my.x += v.x;
     my.y += v.y;
     my.z += v.z;
     ret my;
 }
 
-@(*): vec3 (t: num) -> vec3 {
+@(*=): vec3 (t: num) -> vec3 {
     my.x *= t;
     my.y *= t;
     my.z *= t;
     ret my;
 }
 
-@(/): vec3 (t: num) -> vec3 {
+@(/=): vec3 (t: num) -> vec3 {
     ret my *= (1 / t);
-}
-
-@length: num -> vec3 {
-    ret sqrt(my.length_squared());
 }
 
 @length_squared: num -> vec3 {
     ret my.x * my.x + my.y * my.y + my.z * my.z;
+}
+
+@length: num -> vec3 {
+    ret sqrt(my.length_squared());
 }
 
 @near_zero: bool -> vec3 {
@@ -121,11 +121,13 @@ $point3 (x: num, y: num, z: num) { my = vec3(x, y, z); }
 }
 
 @random_in_unit_disk: vec3 {
+	vec3 p;
     while (true) {
-        vec3 p = vec3(random(-1, 1), random(-1, 1), 0);
+        p = vec3(random(-1, 1), random(-1, 1), 0);
         if (p.length_squared() < 1)
             ret p;
     }
+	ret p;
 }
 
 @random_vec3: vec3 {
@@ -137,11 +139,13 @@ $point3 (x: num, y: num, z: num) { my = vec3(x, y, z); }
 }
 
 @random_in_unit_sphere: vec3 {
+	vec3 p;
     while (true) {
-        vec3 p = random_vec3(-1, 1);
+        p = random_vec3(-1, 1);
         if (p.length_squared() < 1)
             ret p;
     }
+	ret p;
 }
 
 @random_unit_vector: vec3 {
