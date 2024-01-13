@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../ast/ast.h"
+#include "ast.h"
 
 namespace csaw
 {
-	bool Parse(const std::string& filename);
-	bool ParseStream(std::istream& stream);
+	bool ParseFile(const std::string& filename);
+	void ParseStream(std::istream& stream);
 
 	enum TokenType
 	{

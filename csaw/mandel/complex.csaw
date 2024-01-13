@@ -3,10 +3,10 @@ thing: complex {
     imaginary: num,
 }
 
-@conjugate: complex -> complex;
-@mod: num -> complex;
-
-$complex { my.real = 0; my.imaginary = 0; }
+$complex {
+	my.real = 0;
+	my.imaginary = 0;
+}
 $complex (real: num, imaginary: num) {
     my.real = real;
     my.imaginary = imaginary;
@@ -81,7 +81,7 @@ $complex (real: num, imaginary: num) {
 }
 
 @out (c: complex) {
-    csaw_printf("%f %s%fi", c.real, (c.imaginary < 0 ? "" : "+ "), c.imaginary);
+    printf("%f %s%fi", c.real, (c.imaginary < 0 ? "" : "+ "), c.imaginary);
 }
 
 @exp: complex (z: complex) {

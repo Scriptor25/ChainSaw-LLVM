@@ -1,4 +1,5 @@
-#include "ast.h"
+#include <algorithm>
+#include <csaw/ast.h>
 
 std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Expr>& expr)
 {
@@ -97,9 +98,26 @@ std::ostream& csaw::NumExpr::operator>>(std::ostream& out) const
 	return out << Value;
 }
 
+static void replace(std::string& str, const std::string& from, const std::string& to)
+{
+	size_t start_pos;
+	while ((start_pos = str.find(from)) != std::string::npos)
+		str.replace(start_pos, from.size(), to);
+}
+
 std::ostream& csaw::StrExpr::operator>>(std::ostream& out) const
 {
-	return out << '"' << Value << '"';
+	std::string value = Value;
+
+	replace(value, "\a", "\\a");
+	replace(value, "\b", "\\b");
+	replace(value, "\f", "\\f");
+	replace(value, "\n", "\\n");
+	replace(value, "\r", "\\r");
+	replace(value, "\t", "\\t");
+	replace(value, "\v", "\\v");
+
+	return out << '"' << value << '"';
 }
 
 std::ostream& csaw::UnExpr::operator>>(std::ostream& out) const

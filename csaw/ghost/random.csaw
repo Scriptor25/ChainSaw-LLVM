@@ -1,5 +1,5 @@
 @random: num (minc: num, mexc: num) {
-    ret minc + (mexc - minc) * csaw_random();
+    ret minc + (mexc - minc) * random();
 }
 
 @randomInt: num (minc: num, mexc: num) {

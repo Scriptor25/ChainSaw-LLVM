@@ -15,12 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\csawstd\csawstd.h">
+    <ClInclude Include="include\csawir\builder.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\csawir\cir.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="include\csawir\parser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\csawstd.cpp">
+    <ClCompile Include="src\parser\parser.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\parser\token.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

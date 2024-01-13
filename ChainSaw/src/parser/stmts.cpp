@@ -1,4 +1,4 @@
-#include "parser.h"
+#include <csaw/parser.h>
 
 std::shared_ptr<csaw::Stmt> csaw::Parser::NextStmt(bool end)
 {

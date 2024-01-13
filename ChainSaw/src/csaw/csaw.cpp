@@ -1,7 +1,7 @@
-#include "csaw.h"
-#include "parser/parser.h"
-
+#include <csaw/csaw.h>
+#include <csaw/parser.h>
 #include <iostream>
+#include <sstream>
 
 int main(int argc, const char** argv)
 {
@@ -46,10 +46,7 @@ int main(int argc, const char** argv)
 	}
 
 	if (filename.empty())
-	{
-		csaw::Shell(path, flags, options);
-		return 0;
-	}
+		return csaw::Shell(path, flags, options);
 
 	return csaw::Run(path, filename, args, flags, options);
 }
@@ -73,6 +70,9 @@ int csaw::Shell(
 			std::cout << "\033\143";
 			continue;
 		}
+
+		std::stringstream stream(input);
+		ParseStream(stream);
 	}
 
 	return 0;
@@ -85,6 +85,12 @@ int csaw::Run(
 	const std::vector<std::string>& flags,
 	const std::map<std::string, std::string>& options)
 {
+	if (!ParseFile(filename))
+	{
+		std::cerr << "Failed to parse file '" << filename << "'" << std::endl;
+		return 1;
+	}
+
 	return 0;
 }
 

@@ -5,10 +5,13 @@ VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChainSaw", "ChainSaw\ChainSaw.vcxproj", "{BD73CB32-D61E-4A01-82F6-BB9696581632}"
 	ProjectSection(ProjectDependencies) = postProject
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6} = {2C10D320-904D-44E0-9C0C-0E0749CAF0E6}
 		{D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E} = {D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSawStd", "CSawStd\CSawStd.vcxproj", "{D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSawIR", "CSawIR\CSawIR.vcxproj", "{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +37,14 @@ Global
 		{D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E}.Release|x64.Build.0 = Release|x64
 		{D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E}.Release|x86.ActiveCfg = Release|Win32
 		{D3C9DAE7-4759-45C6-B77B-0DFB00E3B42E}.Release|x86.Build.0 = Release|Win32
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Debug|x64.ActiveCfg = Debug|x64
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Debug|x64.Build.0 = Debug|x64
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Debug|x86.ActiveCfg = Debug|Win32
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Debug|x86.Build.0 = Debug|Win32
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Release|x64.ActiveCfg = Release|x64
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Release|x64.Build.0 = Release|x64
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Release|x86.ActiveCfg = Release|Win32
+		{2C10D320-904D-44E0-9C0C-0E0749CAF0E6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,4 @@
-#include "ast.h"
+#include <csaw/ast.h>
 
 static size_t depth = 0;
 
@@ -73,24 +73,29 @@ std::ostream& csaw::ForStmt::operator>>(std::ostream& out) const
 std::ostream& csaw::FunStmt::operator>>(std::ostream& out) const
 {
 	out << (IsConstructor ? '$' : '@') << Name;
-	if (!IsConstructor && !RetType->Name.empty())
+	if (!IsConstructor && RetType)
 		out << ": " << RetType;
-	out << " (";
 
-	bool first = true;
-	for (auto& param : Parameters)
+	if (!Parameters.empty())
 	{
-		if (first) first = false;
-		else out << ", ";
-		out << param;
+		out << " (";
+
+		bool first = true;
+		for (auto& param : Parameters)
+		{
+			if (first) first = false;
+			else out << ", ";
+			out << param;
+		}
+
+		out << ")";
 	}
 
-	out << ") ";
 	if (IsVarArg)
-		out << "? ";
-	if (!MemberOf->Name.empty())
-		out << "-> " << MemberOf << ' ';
-	return *Body.get() >> out;
+		out << " ?";
+	if (MemberOf)
+		out << " ->" << MemberOf;
+	return *Body.get() >> (out << ' ');
 }
 
 std::ostream& csaw::IfStmt::operator>>(std::ostream& out) const

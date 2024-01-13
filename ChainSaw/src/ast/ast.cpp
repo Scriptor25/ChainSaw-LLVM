@@ -1,5 +1,4 @@
-#include "ast.h"
-
+#include <csaw/ast.h>
 #include <iostream>
 
 std::ostream& csaw::operator<<(std::ostream& out, const ASTParameter& parameter)
