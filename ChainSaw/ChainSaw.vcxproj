@@ -23,11 +23,6 @@
     <ClCompile Include="src\ast\astexprs.cpp" />
     <ClCompile Include="src\ast\aststmts.cpp" />
     <ClCompile Include="src\ast\asttype.cpp" />
-    <ClCompile Include="src\compiler\comexprs.cpp" />
-    <ClCompile Include="src\compiler\compiler.cpp" />
-    <ClCompile Include="src\compiler\comstmts.cpp" />
-    <ClCompile Include="src\compiler\environment.cpp" />
-    <ClCompile Include="src\compiler\operators.cpp" />
     <ClCompile Include="src\csaw.cpp" />
     <ClCompile Include="src\parser\exprs.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
@@ -36,7 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\csaw\ast.h" />
-    <ClInclude Include="include\csaw\compiler.h" />
     <ClInclude Include="include\csaw\csaw.h" />
     <ClInclude Include="include\csaw\parser.h" />
   </ItemGroup>

@@ -3,27 +3,27 @@
 std::ostream& csaw::operator<<(std::ostream& out, const ExprPtr& expr)
 {
 	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<CallExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<ConExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<IdExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<IndexExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<LambdaExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<MemExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<NumExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<StrExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<UnExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<VarArgExpr>(expr))
-		return *e.get() >> out;
+		return *e >> out;
 
 	throw;
 }
@@ -74,7 +74,7 @@ std::ostream& csaw::LambdaExpr::operator>>(std::ostream& out) const
 	{
 		if (first) first = false;
 		else out << ", ";
-		*passed.get() >> out;
+		*passed >> out;
 	}
 	out << "](";
 	first = true;

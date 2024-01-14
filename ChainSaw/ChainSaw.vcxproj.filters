@@ -27,21 +27,6 @@
     <ClCompile Include="src\ast\asttype.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\comexprs.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\compiler.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\comstmts.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\environment.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\operators.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="src\parser\exprs.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -60,9 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\csaw\ast.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\csaw\compiler.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="include\csaw\csaw.h">

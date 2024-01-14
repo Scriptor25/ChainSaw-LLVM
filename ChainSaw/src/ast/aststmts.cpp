@@ -8,25 +8,25 @@ std::ostream& csaw::operator<<(std::ostream& out, const StmtPtr& stmt)
 		return out;
 
 	if (auto s = std::dynamic_pointer_cast<AliasStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<EnclosedStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<ForStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<FunStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<IfStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<IncStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<RetStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<ThingStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<VarStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 	if (auto s = std::dynamic_pointer_cast<WhileStmt>(stmt))
-		return *s.get() >> out;
+		return *s >> out;
 
 	if (auto e = std::dynamic_pointer_cast<Expr>(stmt))
 		return out << e << ';';
@@ -73,24 +73,27 @@ std::ostream& csaw::ForStmt::operator>>(std::ostream& out) const
 std::ostream& csaw::FunStmt::operator>>(std::ostream& out) const
 {
 	out << (IsConstructor ? '$' : '@') << Name;
-	if (!IsConstructor && !RetType->Name.empty())
+	if (!IsConstructor && RetType)
 		out << ": " << RetType;
-	out << " (";
 
-	bool first = true;
-	for (auto& param : Parameters)
+	if (!Parameters.empty())
 	{
-		if (first) first = false;
-		else out << ", ";
-		out << param;
+		out << " (";
+		bool first = true;
+		for (auto& param : Parameters)
+		{
+			if (first) first = false;
+			else out << ", ";
+			out << param;
+		}
+		out << ")";
 	}
 
-	out << ") ";
 	if (IsVarArg)
-		out << "? ";
-	if (!MemberOf->Name.empty())
-		out << "-> " << MemberOf << ' ';
-	return *Body.get() >> out;
+		out << " ?";
+	if (MemberOf)
+		out << " -> " << MemberOf;
+	return out << ' ' << Body;
 }
 
 std::ostream& csaw::IfStmt::operator>>(std::ostream& out) const
