@@ -17,12 +17,18 @@ void csaw::ParseStream(std::istream& stream)
 {
 	Parser parser(stream);
 	parser.Next();
+
+	csawir::Context context;
+	csawir::Builder builder(context);
+
 	while (!parser.AtEof())
 	{
 		auto stmt = parser.NextStmt(true);
 		std::cout << stmt << std::endl;
-		Build(nullptr, stmt);
+		Build(builder, stmt);
 	}
+
+	std::cout << context << std::endl;
 }
 
 int csaw::Parser::read()

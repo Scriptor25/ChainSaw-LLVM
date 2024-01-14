@@ -59,6 +59,7 @@ namespace csawir
 		const Token& ExpectAndNext(const TokenType type);
 
 		void NextFunction();
+		void NextGlobal();
 		Inst* NextHighLevel();
 		Inst* NextInst();
 		Value* NextValue();

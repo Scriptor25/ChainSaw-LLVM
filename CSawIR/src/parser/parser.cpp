@@ -26,6 +26,12 @@ void csawir::ParseStream(std::istream& stream)
 			continue;
 		}
 
+		if (parser.At(TOKEN_GLOBAL))
+		{
+			parser.NextGlobal();
+			continue;
+		}
+
 		std::cout << "Warning: not parsed tokens: ";
 		while (!parser.AtEol())
 		{
@@ -266,6 +272,19 @@ void csawir::Parser::NextFunction()
 	NextLine();
 }
 
+void csawir::Parser::NextGlobal()
+{
+	std::string name = ExpectAndNext(TOKEN_GLOBAL).Value;
+
+	auto cnst = NextConst();
+	if (!cnst)
+		throw;
+
+	m_Context.CreateGlobal(name, cnst);
+
+	NextLine();
+}
+
 csawir::Inst* csawir::Parser::NextHighLevel()
 {
 	if (At(TOKEN_REGISTER))
@@ -396,7 +415,7 @@ csawir::Value* csawir::Parser::NextValue()
 {
 	if (At(TOKEN_REGISTER))
 	{
-		std::string reg = Current().Value;
+		std::string name = Current().Value;
 		Next();
 
 		auto type = m_Context.GetType(Current().Value);
@@ -404,7 +423,20 @@ csawir::Value* csawir::Parser::NextValue()
 			throw;
 
 		Next();
-		return new RegValue(type, reg);
+		return new RegValue(name, type);
+	}
+
+	if (At(TOKEN_GLOBAL))
+	{
+		std::string name = Current().Value;
+		Next();
+
+		auto type = m_Context.GetType(Current().Value);
+		if (!type)
+			throw;
+
+		Next();
+		return new GlobalPtr(name, type);
 	}
 
 	return NextConst();

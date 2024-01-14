@@ -136,13 +136,37 @@ csawir::Function* csawir::Context::CreateFunction(const std::string& name, Funct
 	return m_Functions[name][type] = function;
 }
 
+csawir::Global* csawir::Context::CreateGlobal(const std::string& name, Const* value)
+{
+	return m_Globals[name] = new Global(name, value);
+}
+
+const std::vector<csawir::Type*> csawir::Context::GetTypes() const
+{
+	std::vector<Type*> types;
+	for (auto& entry : m_Types)
+		types.push_back(entry.second);
+	return types;
+}
+
+const std::vector<csawir::Global*> csawir::Context::GetGlobals() const
+{
+	std::vector<Global*> globals;
+	for (auto& entry : m_Globals)
+		globals.push_back(entry.second);
+	return globals;
+}
+
 std::ostream& csawir::operator<<(std::ostream& out, const Context& context)
 {
 	out << "---------- Types: ----------" << std::endl;
 	for (auto& pairnametype : context.GetTypes())
-		out << pairnametype.first << ": " << *pairnametype.second << std::endl;
+		out << *pairnametype << std::endl;
 	out << "----------------------------" << std::endl << std::endl;
 
+	for (auto global : context.GetGlobals())
+		out << *global << std::endl;
+	out << std::endl;
 	for (auto function : context.GetFunctions())
 		out << *function << std::endl;
 

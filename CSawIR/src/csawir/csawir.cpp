@@ -41,10 +41,14 @@ std::ostream& csawir::operator<<(std::ostream& out, const Value& value)
 {
 	if (auto v = dynamic_cast<const RegValue*>(&value))
 		return out << *v;
+	if (auto v = dynamic_cast<const GlobalPtr*>(&value))
+		return out << *v;
 
 	if (auto v = dynamic_cast<const Const*>(&value))
 		return out << *v;
 	if (auto v = dynamic_cast<const Inst*>(&value))
+		return out << *v;
+	if (auto v = dynamic_cast<const Global*>(&value))
 		return out << *v;
 
 	throw;
@@ -53,6 +57,11 @@ std::ostream& csawir::operator<<(std::ostream& out, const Value& value)
 std::ostream& csawir::operator<<(std::ostream& out, const RegValue& value)
 {
 	return out << '%' << value.Name << ' ' << *value.Type;
+}
+
+std::ostream& csawir::operator<<(std::ostream& out, const GlobalPtr& value)
+{
+	return out << '$' << value.Name << ' ' << *value.Type;
 }
 
 std::ostream& csawir::operator<<(std::ostream& out, const Const& cnst)
@@ -88,6 +97,11 @@ std::ostream& csawir::operator<<(std::ostream& out, const ConstStr& cnst)
 	replace(value, "\f", "\\f");
 	replace(value, "\r", "\\r");
 	return out << "const str \"" << value << '"';
+}
+
+std::ostream& csawir::operator<<(std::ostream& out, const Global& global)
+{
+	return out << '$' << global.Name << ' ' << *global.Value;
 }
 
 std::ostream& csawir::operator<<(std::ostream& out, const Inst& inst)

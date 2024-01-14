@@ -46,14 +46,26 @@ namespace csawir
 
 	struct RegValue : Value
 	{
-		RegValue(Type* type, const std::string& name)
-			: Type(type), Name(name)
+		RegValue(const std::string& name, Type* type)
+			: Name(name), Type(type)
 		{}
 
 		Type* GetType() const override { return Type; }
 
-		Type* Type;
 		std::string Name;
+		Type* Type;
+	};
+
+	struct GlobalPtr : Value
+	{
+		GlobalPtr(const std::string& name, Type* type)
+			: Name(name), Type(type)
+		{}
+
+		Type* GetType() const override { return Type; }
+
+		std::string Name;
+		Type* Type;
 	};
 
 	struct Const : Value
@@ -76,16 +88,26 @@ namespace csawir
 	struct ConstStr : Const
 	{
 		ConstStr(Type* type, const std::string& value)
-			: ValueType(type), Value(value)
+			: Type(type), Value(value)
 		{}
 
-		Type* GetType() const override { return ValueType; }
+		Type* GetType() const override { return Type; }
 
-		Type* ValueType;
+		Type* Type;
 		std::string Value;
 	};
 
-	struct SetInst;
+	struct Global : Value
+	{
+		Global(const std::string& name, Const* value)
+			: Name(name), Value(value)
+		{}
+
+		Type* GetType() const override { return Value->GetType(); }
+
+		std::string Name;
+		Value* Value;
+	};
 
 	struct Inst : Value
 	{
@@ -212,11 +234,14 @@ namespace csawir
 	std::ostream& operator<<(std::ostream& out, const Type& type);
 
 	std::ostream& operator<<(std::ostream& out, const Value& value);
-	std::ostream& operator<<(std::ostream& out, const RegValue& inst);
+	std::ostream& operator<<(std::ostream& out, const RegValue& value);
+	std::ostream& operator<<(std::ostream& out, const GlobalPtr& value);
 
 	std::ostream& operator<<(std::ostream& out, const Const& cnst);
 	std::ostream& operator<<(std::ostream& out, const ConstNum& cnst);
 	std::ostream& operator<<(std::ostream& out, const ConstStr& cnst);
+
+	std::ostream& operator<<(std::ostream& out, const Global& global);
 
 	std::ostream& operator<<(std::ostream& out, const Inst& inst);
 	std::ostream& operator<<(std::ostream& out, const CallInst& inst);

@@ -141,6 +141,7 @@
     <ClInclude Include="include\csawir\parser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\builder\builder.cpp" />
     <ClCompile Include="src\csawir\csawir.cpp" />
     <ClCompile Include="src\context\context.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />

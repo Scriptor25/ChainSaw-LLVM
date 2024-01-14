@@ -4,15 +4,15 @@
 #include <sstream>
 #include <csawir/parser.h>
 
-int main(int argc, const char** argv)
+int main1(int argc, const char** argv)
 {
-	if (!csawir::ParseFile("cir/test.cir"))
+	if (!csawir::ParseFile("cir/ghost.csawir"))
 		return 1;
 
 	return 0;
 }
 
-int main1(int argc, const char** argv)
+int main(int argc, const char** argv)
 {
 	std::string path = argv[0]; // exe path
 	std::string filename;
