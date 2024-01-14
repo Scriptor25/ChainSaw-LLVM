@@ -13,12 +13,6 @@ csaw::type_t csaw::GenIR(const TypePtr& type)
 
 csaw::type_t csaw::GenIR(const std::string& type)
 {
-	// any = opaque*
-	// num = double
-	// chr = i8
-	// str = i8*
-	// {}  = {}*
-
 	if (Environment::HasAlias(type))
 		return Environment::GetAlias(type);
 
