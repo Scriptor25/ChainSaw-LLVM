@@ -1,8 +1,9 @@
 #pragma once
 
+#include <csawir/csawir.h>
 #include <istream>
 
-namespace cir
+namespace csawir
 {
 	bool ParseFile(const std::string& filename);
 	void ParseStream(std::istream& stream);
@@ -15,6 +16,9 @@ namespace cir
 		TOKEN_STRING,
 		TOKEN_CHAR,
 		TOKEN_OPERATOR,
+		TOKEN_REGISTER,
+		TOKEN_BLOCK,
+		TOKEN_GLOBAL,
 	};
 
 	struct Token
@@ -30,7 +34,6 @@ namespace cir
 	};
 
 	std::ostream& operator<<(std::ostream& out, const Token& token);
-	std::ostream& operator<<(std::ostream& out, const std::shared_ptr<Token>& token);
 	std::ostream& operator<<(std::ostream& out, const TokenType& type);
 
 	class Parser
@@ -39,30 +42,34 @@ namespace cir
 		Parser(std::istream& stream)
 			: m_Stream(stream) {}
 
-	private:
-		int read();
-		void mark(int limit);
-		void reset();
+		Context& GetContext() { return m_Context; }
+		const Context& GetContext() const { return m_Context; }
 
-	public:
-		std::shared_ptr<Token> Next();
-		std::shared_ptr<Token> Current();
+		std::vector<Token>& NextLine();
+		void Next();
+		const Token& Current() const;
 
+		bool AtEol() const;
 		bool AtEof() const;
 		bool At(const std::string& value) const;
 		bool At(const TokenType type) const;
-		bool Expect(const std::string& value) const;
-		bool Expect(const TokenType type) const;
-		bool ExpectAndNext(const std::string& value);
-		bool ExpectAndNext(const TokenType type);
+		const Token& Expect(const std::string& value) const;
+		const Token& Expect(const TokenType type) const;
+		const Token& ExpectAndNext(const std::string& value);
+		const Token& ExpectAndNext(const TokenType type);
+
+		void NextFunction();
+		Inst* NextHighLevel();
+		Inst* NextInst();
+		Value* NextValue();
+		Const* NextConst();
 
 	private:
 		std::istream& m_Stream;
-		int m_Limit = 0;
-		int m_Index = 0;
-		char* m_Peek = nullptr;
+		std::vector<Token> m_Current;
+		size_t m_Index = 0;
+		int m_Line = 0;
 
-		std::shared_ptr<Token> m_Current;
-		int m_Line = 1;
+		Context m_Context;
 	};
 }

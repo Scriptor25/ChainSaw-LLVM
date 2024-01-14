@@ -136,10 +136,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\csawir\builder.h" />
-    <ClInclude Include="include\csawir\cir.h" />
+    <ClInclude Include="include\csawir\csawir.h" />
+    <ClInclude Include="include\csawir\context.h" />
     <ClInclude Include="include\csawir\parser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\csawir\csawir.cpp" />
+    <ClCompile Include="src\context\context.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
     <ClCompile Include="src\parser\token.cpp" />
   </ItemGroup>

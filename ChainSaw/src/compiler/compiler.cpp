@@ -1,6 +1,6 @@
 #include <csaw/compiler.h>
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<Stmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<Stmt>& stmt)
 {
 	if (!stmt)
 		throw;
@@ -35,57 +35,57 @@ void csaw::Build(cir::Builder* builder, const std::shared_ptr<Stmt>& stmt)
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<AliasStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<AliasStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<EnclosedStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<EnclosedStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<ForStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<ForStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<FunStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<FunStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<IfStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<IfStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<IncStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<IncStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<RetStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<RetStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<ThingStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<ThingStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<VarStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<VarStmt>& stmt)
 {
 	throw;
 }
 
-void csaw::Build(cir::Builder* builder, const std::shared_ptr<WhileStmt>& stmt)
+void csaw::Build(csawir::Builder* builder, const std::shared_ptr<WhileStmt>& stmt)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<Expr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<Expr>& expr)
 {
 	if (!expr)
 		throw;
@@ -118,72 +118,72 @@ cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<Expr>& expr
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<BinExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<BinExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<CallExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<CallExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<ChrExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<ChrExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<ConExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<ConExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<IdExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<IdExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<IndexExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<IndexExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<LambdaExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<LambdaExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<MemExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<MemExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<NumExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<NumExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<StrExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<StrExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<UnExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<UnExpr>& expr)
 {
 	throw;
 }
 
-cir::Value* csaw::Build(cir::Builder* builder, const std::shared_ptr<VarArgExpr>& expr)
+csawir::Value* csaw::Build(csawir::Builder* builder, const std::shared_ptr<VarArgExpr>& expr)
 {
 	throw;
 }
 
-cir::Type* csaw::Build(cir::Builder* builder, const std::shared_ptr<ASTType>& type)
+csawir::Type* csaw::Build(csawir::Builder* builder, const std::shared_ptr<ASTType>& type)
 {
 	throw;
 }
 
-cir::Type* csaw::Build(cir::Builder* builder, const std::shared_ptr<ASTArrayType>& type)
+csawir::Type* csaw::Build(csawir::Builder* builder, const std::shared_ptr<ASTArrayType>& type)
 {
 	throw;
 }

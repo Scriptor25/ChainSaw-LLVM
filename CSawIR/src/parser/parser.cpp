@@ -2,8 +2,9 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
-bool cir::ParseFile(const std::string& filename)
+bool csawir::ParseFile(const std::string& filename)
 {
 	std::ifstream stream(filename);
 	if (!stream)
@@ -13,198 +14,417 @@ bool cir::ParseFile(const std::string& filename)
 	return true;
 }
 
-void cir::ParseStream(std::istream& stream)
+void csawir::ParseStream(std::istream& stream)
 {
 	Parser parser(stream);
-	parser.Next();
+	parser.NextLine();
 	while (!parser.AtEof())
 	{
-		parser.Next();
+		if (parser.At("def") || parser.At("dec"))
+		{
+			parser.NextFunction();
+			continue;
+		}
+
+		std::cout << "Warning: not parsed tokens: ";
+		while (!parser.AtEol())
+		{
+			std::cout << parser.Current() << ", ";
+			parser.Next();
+		}
+
+		parser.NextLine();
+		std::cout << std::endl;
 	}
+
+	std::cout << parser.GetContext() << std::endl;
 }
 
-int cir::Parser::read()
+static void replace(std::string& str, const std::string& from, const std::string& to)
 {
-	int c = m_Stream.get();
-	if (m_Index < m_Limit)
-		m_Peek[m_Index++] = c;
-	return c;
+	size_t start_pos;
+	while ((start_pos = str.find(from)) != std::string::npos)
+		str.replace(start_pos, from.length(), to);
 }
 
-void cir::Parser::mark(int limit)
+std::vector<csawir::Token>& csawir::Parser::NextLine()
 {
-	m_Peek = new char[limit];
+	if (m_Stream.eof())
+	{
+		m_Current.clear();
+		m_Current.push_back(Token(m_Line));
+		m_Index = 0;
+		return m_Current;
+	}
+
+	std::string line;
+	std::getline(m_Stream, line);
+
 	m_Index = 0;
-	m_Limit = limit;
-}
+	m_Line++;
 
-void cir::Parser::reset()
-{
-	for (int i = m_Index - 1; i >= 0; i--)
-		m_Stream.putback(m_Peek[i]);
-	m_Limit = 0;
-}
+	std::stringstream linestream(line);
+	std::string segment;
 
-static bool isignore(int c)
-{
-	return 0x00 <= c && c <= 0x20;
-}
+	std::string fusestr;
 
-static int escape(int c)
-{
-	switch (c) {
-	case 'a':
-		return '\a';
-	case 'b':
-		return '\b';
-	case 't':
-		return '\t';
-	case 'n':
-		return '\n';
-	case 'v':
-		return '\v';
-	case 'f':
-		return '\f';
-	case 'r':
-		return '\r';
-	default:
-		return c;
-	}
-}
+	m_Current.clear();
+	while (std::getline(linestream, segment, ' '))
+		if (!segment.empty())
+		{
+			TokenType type;
 
-std::shared_ptr<cir::Token> cir::Parser::Next()
-{
-	int c = read();
-
-	for (; isignore(c); c = read())
-		if (c == '\n')
-			m_Line++;
-
-	if (c < 0)
-		return m_Current = std::make_shared<Token>(m_Line);
-
-	if (c == '#') {
-		c = read();
-		const char LIMIT = c == '#' ? '\n' : '#';
-		while ((c = read()) != LIMIT && c >= 0)
-			if (c == '\n')
-				m_Line++;
-		if (LIMIT == '\n')
-			m_Line++;
-		return Next();
-	}
-
-	if (isalpha(c) || c == '_') {
-		std::string value;
-		do {
-			value += c;
-			mark(1);
-			c = read();
-		} while (isalnum(c) || c == '_');
-		reset();
-
-		return m_Current = std::make_shared<Token>(TOKEN_IDENTIFIER, value, m_Line);
-	}
-
-	if (isdigit(c)) {
-		std::string value;
-		do {
-			value += c;
-			mark(1);
-			int p = c;
-			c = read();
-			if (((p == 'e' || p == 'E') && c == '-')) {
-				value += c;
-				mark(1);
-				c = read();
+			if (!fusestr.empty())
+			{
+				segment = fusestr + ' ' + segment;
+				fusestr.clear();
 			}
-		} while (isxdigit(c) || c == '.' || c == 'x' || c == 'b');
-		reset();
 
-		return m_Current = std::make_shared<Token>(TOKEN_NUMBER, value, m_Line);
-	}
-
-	if (c == '"') {
-		std::string value;
-		c = read();
-		while (c != '"' && c >= 0) {
-			if (c == '\\') {
-				value += escape(read());
-				c = read();
-				continue;
+			replace(segment, "\t", "");
+			if (isdigit(segment[0]) || segment[0] == '.')
+			{
+				type = TOKEN_NUMBER;
 			}
-			value += c;
-			c = read();
+			else if (isalpha(segment[0]) || segment[0] == '_')
+			{
+				type = TOKEN_IDENTIFIER;
+			}
+			else if (segment[0] == '"')
+			{
+				if (segment[segment.size() - 1] != '"')
+				{
+					fusestr = segment;
+					continue;
+				}
+
+				segment = segment.substr(1, segment.size() - 2);
+				replace(segment, "\\a", "\a");
+				replace(segment, "\\b", "\b");
+				replace(segment, "\\t", "\t");
+				replace(segment, "\\n", "\n");
+				replace(segment, "\\v", "\v");
+				replace(segment, "\\f", "\f");
+				replace(segment, "\\r", "\r");
+				type = TOKEN_STRING;
+			}
+			else if (segment[0] == '\'')
+			{
+				segment = segment.substr(1, segment.size() - 2);
+				replace(segment, "\\a", "\a");
+				replace(segment, "\\b", "\b");
+				replace(segment, "\\t", "\t");
+				replace(segment, "\\n", "\n");
+				replace(segment, "\\v", "\v");
+				replace(segment, "\\f", "\f");
+				replace(segment, "\\r", "\r");
+				type = TOKEN_CHAR;
+			}
+			else if (segment[0] == '%')
+			{
+				segment = segment.substr(1);
+				type = TOKEN_REGISTER;
+			}
+			else if (segment[0] == '@')
+			{
+				segment = segment.substr(1);
+				type = TOKEN_BLOCK;
+			}
+			else if (segment[0] == '$')
+			{
+				segment = segment.substr(1);
+				type = TOKEN_GLOBAL;
+			}
+			else
+			{
+				type = TOKEN_OPERATOR;
+			}
+
+			m_Current.push_back(Token(type, segment, m_Line));
 		}
 
-		return m_Current = std::make_shared<Token>(TOKEN_STRING, value, m_Line);
-	}
+	if (m_Current.empty())
+		return NextLine();
 
-	if (c == '\'') {
-		std::string value;
-		c = read();
-		while (c != '\'' && c >= 0) {
-			if (c == '\\') {
-				value += escape(read());
-				c = read();
-			}
-
-			value += c;
-			c = read();
-		}
-
-		return m_Current = std::make_shared<Token>(TOKEN_CHAR, value, m_Line);
-	}
-
-	return m_Current = std::make_shared<Token>(TOKEN_OPERATOR, std::string{ (char)c }, m_Line);
-}
-
-std::shared_ptr<cir::Token> cir::Parser::Current()
-{
 	return m_Current;
 }
 
-bool cir::Parser::AtEof() const
+void csawir::Parser::Next()
 {
-	return m_Current->Type == TOKEN_EOF;
+	++m_Index;
 }
 
-bool cir::Parser::At(const std::string& value) const
+const csawir::Token& csawir::Parser::Current() const
 {
-	return !AtEof() && m_Current->Value == value;
+	return m_Current[m_Index];
 }
 
-bool cir::Parser::At(const TokenType type) const
+bool csawir::Parser::AtEol() const
 {
-	return !AtEof() && m_Current->Type == type;
+	return m_Index >= m_Current.size();
 }
 
-bool cir::Parser::Expect(const std::string& value) const
+bool csawir::Parser::AtEof() const
+{
+	return Current().Type == TOKEN_EOF;
+}
+
+bool csawir::Parser::At(const std::string& value) const
+{
+	return !AtEol() && Current().Value == value;
+}
+
+bool csawir::Parser::At(const TokenType type) const
+{
+	return !AtEol() && Current().Type == type;
+}
+
+const csawir::Token& csawir::Parser::Expect(const std::string& value) const
 {
 	if (At(value))
-		return true;
-	std::cerr << "unexpected token " << m_Current << ", expected value '" << value << "'" << std::endl;
+		return Current();
+	std::cerr << "unexpected token " << Current() << ", expected value '" << value << "'" << std::endl;
 	throw;
 }
 
-bool cir::Parser::Expect(const TokenType type) const
+const csawir::Token& csawir::Parser::Expect(const TokenType type) const
 {
 	if (At(type))
-		return true;
-	std::cerr << "unexpected token " << m_Current << ", expected type '" << type << "'" << std::endl;
+		return Current();
+	std::cerr << "unexpected token " << Current() << ", expected type '" << type << "'" << std::endl;
 	throw;
 }
 
-bool cir::Parser::ExpectAndNext(const std::string& value)
+const csawir::Token& csawir::Parser::ExpectAndNext(const std::string& value)
 {
-	Expect(value);
+	auto& token = Expect(value);
 	Next();
-	return true;
+	return token;
 }
 
-bool cir::Parser::ExpectAndNext(const TokenType type)
+const csawir::Token& csawir::Parser::ExpectAndNext(const TokenType type)
 {
-	Expect(type);
+	auto& token = Expect(type);
 	Next();
-	return true;
+	return token;
+}
+
+void csawir::Parser::NextFunction()
+{
+	bool declare = At("dec");
+	if (!declare) ExpectAndNext("def");
+	else Next();
+
+	std::string rettype = Current().Value; Next();
+	std::string funname = Current().Value; Next();
+
+	bool varargs = false;
+
+	std::vector<std::pair<std::string, std::string>> funargs;
+	while (!AtEol())
+	{
+		if (At("?"))
+		{
+			varargs = true;
+			break;
+		}
+
+		std::string argtype = Current().Value; Next();
+		std::string argname = Current().Value; Next();
+		funargs.push_back({ argtype, argname });
+	}
+
+	NextLine();
+
+	std::vector<Type*> args;
+	for (auto& arg : funargs)
+		args.push_back(m_Context.GetType(arg.first));
+	auto funtype = m_Context.GetFunctionType(m_Context.GetType(rettype), args, varargs);
+	auto function = m_Context.GetFunction(funname, funtype);
+	if (!function)
+		function = m_Context.CreateFunction(funname, funtype);
+
+	if (declare)
+		return;
+
+	if (function->IsDefined())
+		throw;
+
+	for (auto& arg : funargs)
+		function->Args.push_back(arg.second);
+
+	std::string block;
+	while (!At("enddef"))
+	{
+		if (At(TOKEN_BLOCK))
+		{
+			block = Current().Value;
+			NextLine();
+		}
+		function->Append(block, NextHighLevel());
+	}
+
+	NextLine();
+}
+
+csawir::Inst* csawir::Parser::NextHighLevel()
+{
+	if (At(TOKEN_REGISTER))
+	{
+		std::string reg = Current().Value;
+		Next();
+
+		auto inst = NextInst();
+		if (!inst)
+			throw;
+
+		NextLine();
+		return new SetInst(reg, inst);
+	}
+
+	if (At("ret"))
+	{
+		Next();
+		if (AtEol())
+			return new RetInst();
+
+		auto value = NextValue();
+		if (!value)
+			throw;
+
+		NextLine();
+		return new RetInst(value);
+	}
+
+	if (At("store"))
+	{
+		Next();
+
+		auto ptr = NextValue();
+		if (!ptr)
+			throw;
+
+		auto value = NextValue();
+		if (!value)
+			throw;
+
+		NextLine();
+		return new StoreInst(ptr, value);
+	}
+
+	if (At("jmp"))
+	{
+		Next();
+		std::string label = Current().Value;
+		NextLine();
+		return new JmpInst(label);
+	}
+
+	if (At("cjmp"))
+	{
+		Next();
+
+		auto condition = NextValue();
+		if (!condition)
+			throw;
+
+		std::string labeltrue = Current().Value;
+		Next();
+		std::string labelfalse = Current().Value;
+
+		NextLine();
+		return new CJmpInst(condition, labeltrue, labelfalse);
+	}
+
+	auto inst = NextInst();
+	NextLine();
+	return inst;
+}
+
+csawir::Inst* csawir::Parser::NextInst()
+{
+	if (At("call"))
+	{
+		Next();
+		std::string callee = Current().Value;
+		Next();
+		std::vector<Value*> args;
+		std::vector<Type*> argtypes;
+		while (!AtEol())
+		{
+			auto value = NextValue();
+			if (!value)
+				throw;
+
+			args.push_back(value);
+			argtypes.push_back(value->GetType());
+		}
+
+		auto calleefun = m_Context.GetFunction(callee, argtypes);
+		if (!calleefun)
+			throw;
+
+		return new CallInst(calleefun, args);
+	}
+
+	if (At("alloc"))
+	{
+		Next();
+
+		auto type = m_Context.GetType(Current().Value);
+		if (!type)
+			throw;
+
+		Next();
+		return new AllocInst(type);
+	}
+
+	if (At("load"))
+	{
+		Next();
+
+		auto ptr = NextValue();
+		if (!ptr)
+			throw;
+
+		return new LoadInst(ptr);
+	}
+
+	throw;
+}
+
+csawir::Value* csawir::Parser::NextValue()
+{
+	if (At(TOKEN_REGISTER))
+	{
+		std::string reg = Current().Value;
+		Next();
+
+		auto type = m_Context.GetType(Current().Value);
+		if (!type)
+			throw;
+
+		Next();
+		return new RegValue(type, reg);
+	}
+
+	return NextConst();
+}
+
+csawir::Const* csawir::Parser::NextConst()
+{
+	if (At("const"))
+	{
+		Next();
+
+		auto type = m_Context.GetType(Current().Value);
+		if (!type)
+			throw;
+
+		Next();
+		std::string value = Current().Value;
+		Next();
+		return Const::Parse(type, value);
+	}
+
+	throw;
 }

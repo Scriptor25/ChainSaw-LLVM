@@ -1,0 +1,66 @@
+$false const num 0
+$true  const num 1
+
+def num random num minc num mexc
+	%0  call -      %mexc num %minc num
+	%1  call random
+	%2  call *      %0    num %1    num
+	%3  call +      %minc num %2    num
+	ret %3 num
+enddef
+
+def num randomInt num minc num mexc
+	%0  call random %minc num %mexc num
+    %1  call floor %0 num
+	ret %1 num
+enddef
+
+def num main
+	call printf const str "Ghost Game\n\n"
+	%still_running alloc num
+	store %still_running num %true num
+	%score alloc num
+	store %score num const num 0
+	jmp condition
+@condition
+	%0 load %still_running num
+	cjmp %0 num loop exit
+@loop
+	%door_with_ghost call randomInt const num 1 const num 3
+	call printf const str "There are three doors.\nThere's a ghost behind one of them.\nWhich one do you open?\n"
+	%door alloc str
+	jmp conditiondoor
+@conditiondoor
+	%current_door load %door str
+	%1 call != %current_door str const str "1"
+	%2 call != %current_door str const str "2"
+	%3 call && %1 num %2 num
+	%4 call != %current_door str const str "3"
+	%5 call && %3 num %4 num
+	cjmp %5 num loopdoor exitdoor
+@loopdoor
+	%6 call readf const str "1, 2 or 3? "
+	store %door str %6 str
+	jmp conditiondoor
+@exitdoor
+	%7 load %door str
+	%door_num call num %7 str
+	%8 call == %door_num num %door_with_ghost num
+	cjmp %8 num then else
+@then
+	call printf const str "GHOST!\n"
+	store %still_running num %false num
+	jmp exitif
+@else
+	call printf const str "No one there!\nYou can go one room further.\n"
+	%9 load %score num
+	%10 call + %9 num const num 1
+	store %score num %10 num
+	jmp exitif
+@exitif
+	jmp condition
+@exit
+	%current_score load %score num
+	call printf const str "Run!\nGame over! Your score: %.0f\n" %current_score num
+	ret const num 0
+enddef

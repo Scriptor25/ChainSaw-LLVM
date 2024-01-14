@@ -1,16 +1,11 @@
 #include <csawir/parser.h>
 
-std::ostream& cir::operator<<(std::ostream& out, const Token& token)
+std::ostream& csawir::operator<<(std::ostream& out, const Token& token)
 {
 	return out << "[ '" << token.Value << "' -> " << token.Type << " (" << token.Line << ") ]";
 }
 
-std::ostream& cir::operator<<(std::ostream& out, const std::shared_ptr<Token>& token)
-{
-	return out << "[ '" << token->Value << "' -> " << token->Type << " (" << token->Line << ") ]";
-}
-
-std::ostream& cir::operator<<(std::ostream& out, const TokenType& type)
+std::ostream& csawir::operator<<(std::ostream& out, const TokenType& type)
 {
 	switch (type)
 	{
@@ -20,6 +15,8 @@ std::ostream& cir::operator<<(std::ostream& out, const TokenType& type)
 	case TOKEN_STRING: return out << "STRING";
 	case TOKEN_CHAR: return out << "CHAR";
 	case TOKEN_OPERATOR: return out << "OPERATOR";
+	case TOKEN_REGISTER: return out << "REGISTER";
+	case TOKEN_GLOBAL: return out << "GLOBAL";
 	default: return out << "WTF";
 	}
 }
