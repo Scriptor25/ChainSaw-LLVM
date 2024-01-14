@@ -9,56 +9,62 @@ namespace csaw
 {
 	struct Type;
 	struct ArrayType;
+
 	struct Stmt;
 	struct Expr;
+
 	struct AliasStmt;
 	struct EnclosedStmt;
 	struct ForStmt;
-	struct FunStmt;
+	struct FunctionStmt;
 	struct IfStmt;
 	struct IncStmt;
 	struct RetStmt;
 	struct ThingStmt;
-	struct VarStmt;
+	struct VariableStmt;
 	struct WhileStmt;
-	struct BinExpr;
+
+	struct BinaryExpr;
 	struct CallExpr;
 	struct ChrExpr;
-	struct ConExpr;
 	struct IdExpr;
 	struct IndexExpr;
 	struct LambdaExpr;
-	struct MemExpr;
+	struct MemberExpr;
 	struct NumExpr;
+	struct SelectExpr;
 	struct StrExpr;
-	struct UnExpr;
+	struct UnaryExpr;
 	struct VarArgExpr;
 
 	typedef std::shared_ptr<Type> TypePtr;
 	typedef std::shared_ptr<ArrayType> ArrayTypePtr;
+
 	typedef std::shared_ptr<Stmt> StmtPtr;
 	typedef std::shared_ptr<Expr> ExprPtr;
+
 	typedef std::shared_ptr<AliasStmt> AliasStmtPtr;
 	typedef std::shared_ptr<EnclosedStmt> EnclosedStmtPtr;
 	typedef std::shared_ptr<ForStmt> ForStmtPtr;
-	typedef std::shared_ptr<FunStmt> FunStmtPtr;
+	typedef std::shared_ptr<FunctionStmt> FunctionStmtPtr;
 	typedef std::shared_ptr<IfStmt> IfStmtPtr;
 	typedef std::shared_ptr<IncStmt> IncStmtPtr;
 	typedef std::shared_ptr<RetStmt> RetStmtPtr;
 	typedef std::shared_ptr<ThingStmt> ThingStmtPtr;
-	typedef std::shared_ptr<VarStmt> VarStmtPtr;
+	typedef std::shared_ptr<VariableStmt> VariableStmtPtr;
 	typedef std::shared_ptr<WhileStmt> WhileStmtPtr;
-	typedef std::shared_ptr<BinExpr> BinExprPtr;
+
+	typedef std::shared_ptr<BinaryExpr> BinaryExprPtr;
 	typedef std::shared_ptr<CallExpr> CallExprPtr;
 	typedef std::shared_ptr<ChrExpr> ChrExprPtr;
-	typedef std::shared_ptr<ConExpr> ConExprPtr;
 	typedef std::shared_ptr<IdExpr> IdExprPtr;
 	typedef std::shared_ptr<IndexExpr> IndexExprPtr;
 	typedef std::shared_ptr<LambdaExpr> LambdaExprPtr;
-	typedef std::shared_ptr<MemExpr> MemExprPtr;
+	typedef std::shared_ptr<MemberExpr> MemberExprPtr;
 	typedef std::shared_ptr<NumExpr> NumExprPtr;
+	typedef std::shared_ptr<SelectExpr> SelectExprPtr;
 	typedef std::shared_ptr<StrExpr> StrExprPtr;
-	typedef std::shared_ptr<UnExpr> UnExprPtr;
+	typedef std::shared_ptr<UnaryExpr> UnaryExprPtr;
 	typedef std::shared_ptr<VarArgExpr> VarArgExprPtr;
 
 	struct Type
@@ -73,6 +79,7 @@ namespace csaw
 		static TypePtr GetLambda();
 
 		static TypePtr Get(const std::string& name);
+
 		static ArrayTypePtr Get(const std::string& name, const size_t size);
 		static ArrayTypePtr Get(const TypePtr& type, const size_t size);
 
@@ -105,15 +112,11 @@ namespace csaw
 	struct Stmt
 	{
 		virtual ~Stmt() {}
-
 		virtual std::ostream& operator>>(std::ostream& out) const = 0;
 	};
 
 	struct Expr : Stmt
 	{
-		virtual ~Expr() {}
-
-		virtual std::ostream& operator>>(std::ostream& out) const = 0;
 	};
 
 	struct AliasStmt : Stmt
@@ -150,9 +153,9 @@ namespace csaw
 		const StmtPtr Body;
 	};
 
-	struct FunStmt : Stmt
+	struct FunctionStmt : Stmt
 	{
-		FunStmt(const bool is_constructor, const std::string& name, const TypePtr& ret_type, const std::vector<Parameter>& parameters, const bool is_var_arg, const TypePtr& member_of, const EnclosedStmtPtr& body)
+		FunctionStmt(const bool is_constructor, const std::string& name, const TypePtr& ret_type, const std::vector<Parameter>& parameters, const bool is_var_arg, const TypePtr& member_of, const EnclosedStmtPtr& body)
 			: IsConstructor(is_constructor), Name(name), RetType(ret_type), Parameters(parameters), IsVarArg(is_var_arg), MemberOf(member_of), Body(body) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
@@ -210,9 +213,9 @@ namespace csaw
 		const std::vector<Parameter> Fields;
 	};
 
-	struct VarStmt : Stmt
+	struct VariableStmt : Stmt
 	{
-		VarStmt(const TypePtr& type, const std::string& name, const ExprPtr& value)
+		VariableStmt(const TypePtr& type, const std::string& name, const ExprPtr& value)
 			: Type(type), Name(name), Value(value) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
@@ -233,9 +236,9 @@ namespace csaw
 		const StmtPtr Body;
 	};
 
-	struct BinExpr : Expr
+	struct BinaryExpr : Expr
 	{
-		BinExpr(const ExprPtr& left, const ExprPtr& right, const std::string& operator_)
+		BinaryExpr(const ExprPtr& left, const ExprPtr& right, const std::string& operator_)
 			: Left(left), Operator(operator_), Right(right) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
@@ -264,18 +267,6 @@ namespace csaw
 		std::ostream& operator>>(std::ostream& out) const override;
 
 		const char Value;
-	};
-
-	struct ConExpr : Expr
-	{
-		ConExpr(const ExprPtr& condition, const ExprPtr& then, const ExprPtr& else_)
-			: Condition(condition), Then(then), Else(else_) {}
-
-		std::ostream& operator>>(std::ostream& out) const override;
-
-		const ExprPtr Condition;
-		const ExprPtr Then;
-		const ExprPtr Else;
 	};
 
 	struct IdExpr : Expr
@@ -311,9 +302,9 @@ namespace csaw
 		const StmtPtr Body;
 	};
 
-	struct MemExpr : Expr
+	struct MemberExpr : Expr
 	{
-		MemExpr(const ExprPtr& object, const std::string& member)
+		MemberExpr(const ExprPtr& object, const std::string& member)
 			: Object(object), Member(member) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
@@ -338,6 +329,18 @@ namespace csaw
 		const double Value;
 	};
 
+	struct SelectExpr : Expr
+	{
+		SelectExpr(const ExprPtr& condition, const ExprPtr& then, const ExprPtr& else_)
+			: Condition(condition), Then(then), Else(else_) {}
+
+		std::ostream& operator>>(std::ostream& out) const override;
+
+		const ExprPtr Condition;
+		const ExprPtr Then;
+		const ExprPtr Else;
+	};
+
 	struct StrExpr : Expr
 	{
 		StrExpr(const std::string& value)
@@ -348,9 +351,9 @@ namespace csaw
 		const std::string Value;
 	};
 
-	struct UnExpr : Expr
+	struct UnaryExpr : Expr
 	{
-		UnExpr(const std::string& operator_, const ExprPtr& value)
+		UnaryExpr(const std::string& operator_, const ExprPtr& value)
 			: Operator(operator_), Value(value) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
@@ -372,9 +375,21 @@ namespace csaw
 	};
 
 	std::ostream& operator<<(std::ostream& out, const Parameter& parameter);
+
 	std::ostream& operator<<(std::ostream& out, const TypePtr& type);
 	std::ostream& operator<<(std::ostream& out, const ArrayTypePtr& type);
 
 	std::ostream& operator<<(std::ostream& out, const StmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const AliasStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const EnclosedStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const ForStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const FunctionStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const IfStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const IncStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const RetStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const ThingStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const VariableStmtPtr& stmt);
+	std::ostream& operator<<(std::ostream& out, const WhileStmtPtr& stmt);
+
 	std::ostream& operator<<(std::ostream& out, const ExprPtr& expr);
 }

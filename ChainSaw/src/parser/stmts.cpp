@@ -100,7 +100,7 @@ csaw::ForStmtPtr csaw::Parser::NextForStmt(bool end)
 	return std::make_shared<ForStmt>(begin, condition, loop, body);
 }
 
-csaw::FunStmtPtr csaw::Parser::NextFunStmt()
+csaw::FunctionStmtPtr csaw::Parser::NextFunStmt()
 {
 	bool constructor, vararg;
 	std::string name;
@@ -167,12 +167,12 @@ csaw::FunStmtPtr csaw::Parser::NextFunStmt()
 	if (At(";"))
 	{
 		Next(); // skip ;
-		return std::make_shared<FunStmt>(constructor, name, type, parameters, vararg, member, body);
+		return std::make_shared<FunctionStmt>(constructor, name, type, parameters, vararg, member, body);
 	}
 
 	body = NextEnclosedStmt();
 
-	return std::make_shared<FunStmt>(constructor, name, type, parameters, vararg, member, body);
+	return std::make_shared<FunctionStmt>(constructor, name, type, parameters, vararg, member, body);
 }
 
 csaw::IfStmtPtr csaw::Parser::NextIfStmt()
@@ -272,7 +272,7 @@ csaw::WhileStmtPtr csaw::Parser::NextWhileStmt(bool end)
 	return std::make_shared<WhileStmt>(condition, body);
 }
 
-csaw::VarStmtPtr csaw::Parser::NextVarStmt(const ExprPtr& expr, bool end)
+csaw::VariableStmtPtr csaw::Parser::NextVarStmt(const ExprPtr& expr, bool end)
 {
 	if ((std::dynamic_pointer_cast<IdExpr>(expr) || std::dynamic_pointer_cast<IndexExpr>(expr)) && At(TOKEN_IDENTIFIER))
 	{
@@ -287,7 +287,7 @@ csaw::VarStmtPtr csaw::Parser::NextVarStmt(const ExprPtr& expr, bool end)
 		if (At(";"))
 		{
 			Next();
-			return std::make_shared<VarStmt>(type, name, value);
+			return std::make_shared<VariableStmt>(type, name, value);
 		}
 
 		ExpectAndNext("="); // skip =
@@ -296,8 +296,8 @@ csaw::VarStmtPtr csaw::Parser::NextVarStmt(const ExprPtr& expr, bool end)
 		if (!AtEof() && end)
 			ExpectAndNext(";"); // skip ;
 
-		return std::make_shared<VarStmt>(type, name, value);
+		return std::make_shared<VariableStmt>(type, name, value);
 	}
 
-	return VarStmtPtr();
+	return VariableStmtPtr();
 }

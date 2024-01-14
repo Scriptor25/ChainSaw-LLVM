@@ -8,30 +8,80 @@ std::ostream& csaw::operator<<(std::ostream& out, const StmtPtr& stmt)
 		return out;
 
 	if (auto s = std::dynamic_pointer_cast<AliasStmt>(stmt))
-		return *s >> out;
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<EnclosedStmt>(stmt))
-		return *s >> out;
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<ForStmt>(stmt))
-		return *s >> out;
-	if (auto s = std::dynamic_pointer_cast<FunStmt>(stmt))
-		return *s >> out;
+		return out << s;
+	if (auto s = std::dynamic_pointer_cast<FunctionStmt>(stmt))
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<IfStmt>(stmt))
-		return *s >> out;
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<IncStmt>(stmt))
-		return *s >> out;
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<RetStmt>(stmt))
-		return *s >> out;
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<ThingStmt>(stmt))
-		return *s >> out;
-	if (auto s = std::dynamic_pointer_cast<VarStmt>(stmt))
-		return *s >> out;
+		return out << s;
+	if (auto s = std::dynamic_pointer_cast<VariableStmt>(stmt))
+		return out << s;
 	if (auto s = std::dynamic_pointer_cast<WhileStmt>(stmt))
-		return *s >> out;
+		return out << s;
 
 	if (auto e = std::dynamic_pointer_cast<Expr>(stmt))
 		return out << e << ';';
 
 	throw;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const AliasStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const EnclosedStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const ForStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const FunctionStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const IfStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const IncStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const RetStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const ThingStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const VariableStmtPtr& stmt)
+{
+	return *stmt >> out;
+}
+
+std::ostream& csaw::operator<<(std::ostream& out, const WhileStmtPtr& stmt)
+{
+	return *stmt >> out;
 }
 
 std::ostream& csaw::AliasStmt::operator>>(std::ostream& out) const
@@ -70,7 +120,7 @@ std::ostream& csaw::ForStmt::operator>>(std::ostream& out) const
 	return out << ") " << Body;
 }
 
-std::ostream& csaw::FunStmt::operator>>(std::ostream& out) const
+std::ostream& csaw::FunctionStmt::operator>>(std::ostream& out) const
 {
 	out << (IsConstructor ? '$' : '@') << Name;
 	if (!IsConstructor && RetType)
@@ -138,7 +188,7 @@ std::ostream& csaw::ThingStmt::operator>>(std::ostream& out) const
 	return out << std::endl << '}';
 }
 
-std::ostream& csaw::VarStmt::operator>>(std::ostream& out) const
+std::ostream& csaw::VariableStmt::operator>>(std::ostream& out) const
 {
 	out << Type << ' ' << Name;
 	if (!Value)

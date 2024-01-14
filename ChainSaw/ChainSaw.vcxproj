@@ -24,6 +24,9 @@
     <ClCompile Include="src\ast\aststmts.cpp" />
     <ClCompile Include="src\ast\asttype.cpp" />
     <ClCompile Include="src\csaw.cpp" />
+    <ClCompile Include="src\generator\genexpr.cpp" />
+    <ClCompile Include="src\generator\genstmt.cpp" />
+    <ClCompile Include="src\generator\gentype.cpp" />
     <ClCompile Include="src\parser\exprs.cpp" />
     <ClCompile Include="src\parser\parser.cpp" />
     <ClCompile Include="src\parser\stmts.cpp" />
@@ -32,6 +35,8 @@
   <ItemGroup>
     <ClInclude Include="include\csaw\ast.h" />
     <ClInclude Include="include\csaw\csaw.h" />
+    <ClInclude Include="include\csaw\env.h" />
+    <ClInclude Include="include\csaw\generator.h" />
     <ClInclude Include="include\csaw\parser.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -66,13 +66,13 @@ namespace csaw
 		EnclosedStmtPtr NextEnclosedStmt();
 		AliasStmtPtr NextAliasStmt(bool end);
 		ForStmtPtr NextForStmt(bool end);
-		FunStmtPtr NextFunStmt();
+		FunctionStmtPtr NextFunStmt();
 		IfStmtPtr NextIfStmt();
 		IncStmtPtr NextIncStmt(bool end);
 		RetStmtPtr NextRetStmt(bool end);
 		ThingStmtPtr NextThingStmt(bool end);
 		WhileStmtPtr NextWhileStmt(bool end);
-		VarStmtPtr NextVarStmt(const ExprPtr& expr, bool end);
+		VariableStmtPtr NextVarStmt(const ExprPtr& expr, bool end);
 
 		ExprPtr NextExpr();
 		ExprPtr NextConExpr();

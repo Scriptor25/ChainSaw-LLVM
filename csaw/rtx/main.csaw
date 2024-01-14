@@ -4,7 +4,7 @@ inc "common.csaw";
 
     num scene = 0;
 
-    if (scene == 0)      simple_scene();
+         if (scene == 0) simple_scene();
     else if (scene == 1) random_spheres();
     else if (scene == 2) two_spheres();
     else if (scene == 3) earth();

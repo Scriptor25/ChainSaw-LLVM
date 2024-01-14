@@ -2,11 +2,11 @@
 
 std::ostream& csaw::operator<<(std::ostream& out, const ExprPtr& expr)
 {
-	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
+	if (auto e = std::dynamic_pointer_cast<BinaryExpr>(expr))
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<CallExpr>(expr))
 		return *e >> out;
-	if (auto e = std::dynamic_pointer_cast<ConExpr>(expr))
+	if (auto e = std::dynamic_pointer_cast<SelectExpr>(expr))
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<IdExpr>(expr))
 		return *e >> out;
@@ -14,13 +14,13 @@ std::ostream& csaw::operator<<(std::ostream& out, const ExprPtr& expr)
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<LambdaExpr>(expr))
 		return *e >> out;
-	if (auto e = std::dynamic_pointer_cast<MemExpr>(expr))
+	if (auto e = std::dynamic_pointer_cast<MemberExpr>(expr))
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<NumExpr>(expr))
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<StrExpr>(expr))
 		return *e >> out;
-	if (auto e = std::dynamic_pointer_cast<UnExpr>(expr))
+	if (auto e = std::dynamic_pointer_cast<UnaryExpr>(expr))
 		return *e >> out;
 	if (auto e = std::dynamic_pointer_cast<VarArgExpr>(expr))
 		return *e >> out;
@@ -28,7 +28,7 @@ std::ostream& csaw::operator<<(std::ostream& out, const ExprPtr& expr)
 	throw;
 }
 
-std::ostream& csaw::BinExpr::operator>>(std::ostream& out) const
+std::ostream& csaw::BinaryExpr::operator>>(std::ostream& out) const
 {
 	return out << Left << ' ' << Operator << ' ' << Right;
 }
@@ -51,7 +51,7 @@ std::ostream& csaw::ChrExpr::operator>>(std::ostream& out) const
 	return out << '\'' << Value << '\'';
 }
 
-std::ostream& csaw::ConExpr::operator>>(std::ostream& out) const
+std::ostream& csaw::SelectExpr::operator>>(std::ostream& out) const
 {
 	return out << Condition << " ? " << Then << " : " << Else;
 }
@@ -87,7 +87,7 @@ std::ostream& csaw::LambdaExpr::operator>>(std::ostream& out) const
 	return out << ") " << Body;
 }
 
-std::ostream& csaw::MemExpr::operator>>(std::ostream& out) const
+std::ostream& csaw::MemberExpr::operator>>(std::ostream& out) const
 {
 	return out << Object << '.' << Member;
 }
@@ -102,7 +102,7 @@ std::ostream& csaw::StrExpr::operator>>(std::ostream& out) const
 	return out << '"' << Value << '"';
 }
 
-std::ostream& csaw::UnExpr::operator>>(std::ostream& out) const
+std::ostream& csaw::UnaryExpr::operator>>(std::ostream& out) const
 {
 	return out << Operator << Value;
 }
