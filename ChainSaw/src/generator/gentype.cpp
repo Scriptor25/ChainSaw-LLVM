@@ -1,11 +1,26 @@
-#include <csaw/generator.h>
+#include <csaw/gen.h>
 
-llvm::Type* csaw::GenIR(const EnvPtr& env, const TypePtr& type)
+#include <llvm/IR/Type.h>
+#include <llvm/IR/DerivedTypes.h>
+
+csaw::type_t* csaw::GenIR(const EnvPtr& env, const TypePtr& type)
 {
-	return nullptr;
+	if (!type) return new type_t(llvm::Type::getVoidTy(env->Context()));
+
+	if (auto ty = std::dynamic_pointer_cast<ArrayType>(type))
+		return GenIR(env, ty);
+
+	if (env->Alias().contains(type->Name))
+		return env->Alias()[type->Name];
+
+	if (type->Name == "num") return new type_t(llvm::Type::getDoubleTy(env->Context()));
+	if (type->Name == "str") return new type_t(llvm::PointerType::get(llvm::Type::getInt8Ty(env->Context()), 0), new type_t(llvm::Type::getInt8Ty(env->Context())));
+
+	throw;
 }
 
-llvm::Type* csaw::GenIR(const EnvPtr& env, const ArrayTypePtr& type)
+csaw::type_t* csaw::GenIR(const EnvPtr& env, const ArrayTypePtr& type)
 {
-	return nullptr;
+	auto element = GenIR(env, type->Element);
+	return new type_t(llvm::ArrayType::get(element->Type, type->Size), element);
 }

@@ -332,13 +332,13 @@ namespace csaw
 	struct SelectExpr : Expr
 	{
 		SelectExpr(const ExprPtr& condition, const ExprPtr& then, const ExprPtr& else_)
-			: Condition(condition), Then(then), Else(else_) {}
+			: Condition(condition), True(then), False(else_) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
 
 		const ExprPtr Condition;
-		const ExprPtr Then;
-		const ExprPtr Else;
+		const ExprPtr True;
+		const ExprPtr False;
 	};
 
 	struct StrExpr : Expr

@@ -1,11 +1,12 @@
 #pragma once
 
 #include "ast.h"
+#include "gen.h"
 
 namespace csaw
 {
-	bool Parse(const std::string& filename);
-	bool Parse(std::istream& stream);
+	bool Parse(const EnvPtr& env, const std::filesystem::path& filepath);
+	bool Parse(const EnvPtr& env, std::istream& stream);
 
 	enum TokenType
 	{

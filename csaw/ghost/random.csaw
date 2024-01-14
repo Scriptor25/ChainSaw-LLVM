@@ -1,7 +1,10 @@
-@random: num (minc: num, mexc: num) {
-    ret minc + (mexc - minc) * csaw_random();
+@random: num;
+@floor: num (x: num);
+
+@randomNum: num (minc: num, mexc: num) {
+    ret minc + (mexc - minc) * random();
 }
 
 @randomInt: num (minc: num, mexc: num) {
-    ret floor(random(minc, mexc));
+    ret floor(randomNum(minc, mexc));
 }

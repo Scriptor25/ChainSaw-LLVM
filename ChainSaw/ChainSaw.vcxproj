@@ -24,7 +24,9 @@
     <ClCompile Include="src\ast\aststmts.cpp" />
     <ClCompile Include="src\ast\asttype.cpp" />
     <ClCompile Include="src\csaw.cpp" />
+    <ClCompile Include="src\env\env.cpp" />
     <ClCompile Include="src\generator\genexpr.cpp" />
+    <ClCompile Include="src\generator\genop.cpp" />
     <ClCompile Include="src\generator\genstmt.cpp" />
     <ClCompile Include="src\generator\gentype.cpp" />
     <ClCompile Include="src\parser\exprs.cpp" />
@@ -36,7 +38,7 @@
     <ClInclude Include="include\csaw\ast.h" />
     <ClInclude Include="include\csaw\csaw.h" />
     <ClInclude Include="include\csaw\env.h" />
-    <ClInclude Include="include\csaw\generator.h" />
+    <ClInclude Include="include\csaw\gen.h" />
     <ClInclude Include="include\csaw\parser.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -107,7 +109,7 @@
       <AdditionalDependencies>psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>LLVM-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <StackReserveSize>
       </StackReserveSize>
     </Link>
@@ -132,7 +134,7 @@
       <AdditionalDependencies>psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>LLVM-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <StackReserveSize>
       </StackReserveSize>
     </Link>
@@ -153,7 +155,7 @@
       <AdditionalDependencies>psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>LLVM-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <StackReserveSize>
       </StackReserveSize>
     </Link>
@@ -178,7 +180,7 @@
       <AdditionalDependencies>psapi.lib;shell32.lib;ole32.lib;uuid.lib;advapi32.lib;ws2_32.lib;C:\Program Files (x86)\LLVM\lib\*.lib;CSawStd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
-      <DelayLoadDLLs>LLVM-C.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
       <StackReserveSize>
       </StackReserveSize>
     </Link>

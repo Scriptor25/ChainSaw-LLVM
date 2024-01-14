@@ -51,6 +51,12 @@
     <ClCompile Include="src\generator\genexpr.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\env\env.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\generator\genop.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\csaw\ast.h">
@@ -62,7 +68,7 @@
     <ClInclude Include="include\csaw\parser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="include\csaw\generator.h">
+    <ClInclude Include="include\csaw\gen.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="include\csaw\env.h">

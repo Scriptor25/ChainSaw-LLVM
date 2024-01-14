@@ -2,6 +2,7 @@
 #include <csaw/parser.h>
 
 #include <iostream>
+#include <sstream>
 
 int main(int argc, const char** argv)
 {
@@ -59,8 +60,11 @@ int csaw::Shell(
 	const std::vector<std::string>& flags,
 	const std::map<std::string, std::string>& options)
 {
-	std::string input;
+	std::string filename;
+	std::vector<std::string> args;
+	auto env = std::make_shared<Environment>(path, filename, args, flags, options);
 
+	std::string input;
 	while (true)
 	{
 		std::cout << ">> ";
@@ -73,6 +77,9 @@ int csaw::Shell(
 			std::cout << "\033\143";
 			continue;
 		}
+
+		std::stringstream stream(input);
+		Parse(env, stream);
 	}
 
 	return 0;
@@ -85,11 +92,14 @@ int csaw::Run(
 	const std::vector<std::string>& flags,
 	const std::map<std::string, std::string>& options)
 {
-	if (!Parse(filename))
+	auto env = std::make_shared<Environment>(path, filename, args, flags, options);
+	if (!Parse(env, filename))
 	{
 		std::cerr << "Failed to parse file '" << filename << "'" << std::endl;
 		return 1;
 	}
+
+	env->Module().print(llvm::outs(), nullptr);
 
 	return 0;
 }

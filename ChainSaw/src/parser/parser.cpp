@@ -1,25 +1,26 @@
 #include <csaw/parser.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
-bool csaw::Parse(const std::string& filename)
+bool csaw::Parse(const EnvPtr& env, const std::filesystem::path& filepath)
 {
-	std::ifstream stream(filename);
+	std::ifstream stream(filepath);
 	if (!stream)
 		return false;
 
-	return Parse(stream);
+	return Parse(env, stream);
 }
 
-bool csaw::Parse(std::istream& stream)
+bool csaw::Parse(const EnvPtr& env, std::istream& stream)
 {
 	Parser parser(stream);
 	parser.Next();
 	while (!parser.AtEof())
 	{
 		auto stmt = parser.NextStmt(true);
-		std::cout << stmt << std::endl;
+		GenIR(env, stmt);
 	}
 
 	return true;

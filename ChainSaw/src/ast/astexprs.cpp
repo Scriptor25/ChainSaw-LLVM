@@ -53,7 +53,7 @@ std::ostream& csaw::ChrExpr::operator>>(std::ostream& out) const
 
 std::ostream& csaw::SelectExpr::operator>>(std::ostream& out) const
 {
-	return out << Condition << " ? " << Then << " : " << Else;
+	return out << Condition << " ? " << True << " : " << False;
 }
 
 std::ostream& csaw::IdExpr::operator>>(std::ostream& out) const

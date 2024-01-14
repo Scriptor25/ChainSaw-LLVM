@@ -143,7 +143,10 @@ std::ostream& csaw::FunctionStmt::operator>>(std::ostream& out) const
 		out << " ?";
 	if (MemberOf)
 		out << " -> " << MemberOf;
-	return out << ' ' << Body;
+	if (Body)
+		out << ' ' << Body;
+
+	return out;
 }
 
 std::ostream& csaw::IfStmt::operator>>(std::ostream& out) const
