@@ -1,11 +1,11 @@
-#include "parser.h"
+#include <csaw/parser.h>
 
 std::ostream& csaw::operator<<(std::ostream& out, const Token& token)
 {
 	return out << "[ '" << token.Value << "' -> " << token.Type << " (" << token.Line << ") ]";
 }
 
-std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Token>& token)
+std::ostream& csaw::operator<<(std::ostream& out, const TokenPtr& token)
 {
 	return out << "[ '" << token->Value << "' -> " << token->Type << " (" << token->Line << ") ]";
 }

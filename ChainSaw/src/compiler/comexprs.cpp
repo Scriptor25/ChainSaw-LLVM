@@ -1,6 +1,6 @@
-#include "compiler.h"
+#include <csaw/compiler.h>
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Expr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const ExprPtr& expr)
 {
 	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
 		return GenIR(env, e);
@@ -30,7 +30,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	throw "TODO";
 }
 
-static csaw::value_t Assign(const std::shared_ptr<csaw::Environment>& env, const std::shared_ptr<csaw::Expr>& obj, csaw::value_t value)
+static csaw::value_t Assign(const csaw::EnvironmentPtr& env, const csaw::ExprPtr& obj, csaw::value_t value)
 {
 	if (auto e = std::dynamic_pointer_cast<csaw::IdExpr>(obj))
 		return env->SetVariable(e->Value, value);
@@ -60,7 +60,7 @@ static csaw::value_t Assign(const std::shared_ptr<csaw::Environment>& env, const
 	throw "TODO";
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<BinExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const BinExprPtr& expr)
 {
 	std::string op = expr->Operator;
 	bool assign = op.find_last_of('=') == 1 && !(op == "==" || op == "!=" || op == "<=" || op == ">=");
@@ -124,7 +124,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	return value;
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<CallExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const CallExprPtr& expr)
 {
 	std::vector<value_t> args;
 	for (auto& arg : expr->Arguments)
@@ -143,12 +143,12 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	throw "TODO";
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ChrExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const ChrExprPtr& expr)
 {
 	return value_t(Environment::Builder().getInt8(expr->Value), type_t("chr", Environment::Builder().getInt8Ty()));
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ConExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const ConExprPtr& expr)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
 	auto bthen = llvm::BasicBlock::Create(Environment::Context(), "then");
@@ -180,7 +180,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	return value_t(phi, vthen.ptrType);
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IdExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const IdExprPtr& expr)
 {
 	auto value = env->GetVariable(expr->Value);
 	if (auto global = llvm::dyn_cast<llvm::GlobalValue>(value()))
@@ -188,7 +188,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	return value;
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IndexExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const IndexExprPtr& expr)
 {
 	auto object = GenIR(env, expr->Object);
 	auto index = GenIR(env, expr->Index);
@@ -199,12 +199,12 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	throw "TODO";
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<LambdaExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const LambdaExprPtr& expr)
 {
 	throw "TODO";
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<MemExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const MemExprPtr& expr)
 {
 	auto object = GenIR(env, expr->Object);
 	auto strtype = llvm::dyn_cast<llvm::StructType>(object.ptrType.element);
@@ -225,20 +225,20 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	return value_t(Environment::Builder().CreateLoad(strtype->getElementType(i), ptr), type->fields[i].second);
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<NumExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const NumExprPtr& expr)
 {
 	auto dty = Environment::Builder().getDoubleTy();
 	return value_t(llvm::ConstantFP::get(dty, expr->Value), type_t("num", dty));
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<StrExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const StrExprPtr& expr)
 {
 	auto i8 = Environment::Builder().getInt8Ty();
 	auto str = Environment::Builder().CreateGlobalStringPtr(expr->Value, "str");
 	return value_t(str, type_t("str", str->getType(), i8));
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<UnExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const UnExprPtr& expr)
 {
 	auto val = GenIR(env, expr->Value);
 
@@ -265,7 +265,7 @@ csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::sh
 	return value;
 }
 
-csaw::value_t csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarArgExpr>& expr)
+csaw::value_t csaw::GenIR(const EnvironmentPtr& env, const VarArgExprPtr& expr)
 {
 	if (!expr->Type)
 		return value_t(env->GetVarArgs(), type_t("any", Environment::Builder().getPtrTy()));

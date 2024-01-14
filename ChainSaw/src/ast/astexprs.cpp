@@ -1,6 +1,6 @@
-#include "ast.h"
+#include <csaw/ast.h>
 
-std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Expr>& expr)
+std::ostream& csaw::operator<<(std::ostream& out, const ExprPtr& expr)
 {
 	if (auto e = std::dynamic_pointer_cast<BinExpr>(expr))
 		return *e.get() >> out;
@@ -27,11 +27,6 @@ std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Expr>& e
 
 	throw;
 }
-
-//std::ostream& csaw::AssignExpr::operator>>(std::ostream& out) const
-//{
-//	return out << Object << " = " << Value;
-//}
 
 std::ostream& csaw::BinExpr::operator>>(std::ostream& out) const
 {

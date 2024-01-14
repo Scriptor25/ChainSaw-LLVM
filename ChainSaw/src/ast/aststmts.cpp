@@ -1,8 +1,8 @@
-#include "ast.h"
+#include <csaw/ast.h>
 
 static size_t depth = 0;
 
-std::ostream& csaw::operator<<(std::ostream& out, const std::shared_ptr<Stmt>& stmt)
+std::ostream& csaw::operator<<(std::ostream& out, const StmtPtr& stmt)
 {
 	if (!stmt)
 		return out;

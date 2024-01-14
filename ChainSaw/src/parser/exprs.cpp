@@ -1,13 +1,13 @@
-#include "parser.h"
+#include <csaw/parser.h>
 
 #include <iostream>
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextExpr()
+csaw::ExprPtr csaw::Parser::NextExpr()
 {
 	return NextConExpr();
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextConExpr()
+csaw::ExprPtr csaw::Parser::NextConExpr()
 {
 	auto expr = NextBinAndExpr();
 
@@ -22,7 +22,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextConExpr()
 	return expr;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinAndExpr()
+csaw::ExprPtr csaw::Parser::NextBinAndExpr()
 {
 	auto left = NextBinOrExpr();
 
@@ -48,7 +48,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinAndExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinOrExpr()
+csaw::ExprPtr csaw::Parser::NextBinOrExpr()
 {
 	auto left = NextBinXOrExpr();
 
@@ -74,7 +74,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinOrExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinXOrExpr()
+csaw::ExprPtr csaw::Parser::NextBinXOrExpr()
 {
 	auto left = NextBinCmpExpr();
 
@@ -96,7 +96,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinXOrExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinCmpExpr()
+csaw::ExprPtr csaw::Parser::NextBinCmpExpr()
 {
 	auto left = NextBinSumExpr();
 
@@ -120,7 +120,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinCmpExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinSumExpr()
+csaw::ExprPtr csaw::Parser::NextBinSumExpr()
 {
 	auto left = NextBinProExpr();
 
@@ -149,7 +149,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinSumExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextBinProExpr()
+csaw::ExprPtr csaw::Parser::NextBinProExpr()
 {
 	auto left = NextCallExpr();
 
@@ -171,13 +171,13 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextBinProExpr()
 	return left;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextCallExpr()
+csaw::ExprPtr csaw::Parser::NextCallExpr()
 {
 	auto expr = NextIndexExpr();
 
 	while (At("(")) {
 		Next(); // skip (
-		std::vector<std::shared_ptr<Expr>> arguments;
+		std::vector<ExprPtr> arguments;
 		while (!AtEof() && !At(")")) {
 			arguments.push_back(NextExpr());
 			if (!At(")"))
@@ -197,12 +197,12 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextCallExpr()
 	return expr;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextIndexExpr()
+csaw::ExprPtr csaw::Parser::NextIndexExpr()
 {
 	return NextIndexExpr(NextMemExpr());
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextIndexExpr(std::shared_ptr<Expr> expr)
+csaw::ExprPtr csaw::Parser::NextIndexExpr(ExprPtr expr)
 {
 	while (At("[")) {
 		Next(); // skip [
@@ -217,12 +217,12 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextIndexExpr(std::shared_ptr<Expr> ex
 	return expr;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextMemExpr()
+csaw::ExprPtr csaw::Parser::NextMemExpr()
 {
 	return NextMemExpr(NextPrimExpr());
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextMemExpr(std::shared_ptr<Expr> expr)
+csaw::ExprPtr csaw::Parser::NextMemExpr(ExprPtr expr)
 {
 	while (At(".")) {
 		Next(); // skip .
@@ -233,7 +233,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextMemExpr(std::shared_ptr<Expr> expr
 	return expr;
 }
 
-std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
+csaw::ExprPtr csaw::Parser::NextPrimExpr()
 {
 	if (AtEof())
 	{
@@ -251,7 +251,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 	}
 	case TOKEN_NUMBER:
 	{
-		std::shared_ptr<Expr> expr;
+		ExprPtr expr;
 		if (m_Current->Value.rfind("0x", 0) != std::string::npos)
 			expr = std::make_shared<NumExpr>(m_Current->Value.substr(2), 16);
 		else if (m_Current->Value.rfind("0b", 0) != std::string::npos)
@@ -314,7 +314,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 	if (m_Current->Value == "[")
 	{ // lambda!
 		Next(); // skip [
-		std::vector<std::shared_ptr<IdExpr>> passed;
+		std::vector<IdExprPtr> passed;
 		while (!AtEof() && !At("]"))
 		{
 			passed.push_back(std::dynamic_pointer_cast<IdExpr>(NextPrimExpr()));
@@ -324,7 +324,7 @@ std::shared_ptr<csaw::Expr> csaw::Parser::NextPrimExpr()
 		ExpectAndNext("]"); // skip ]
 
 		ExpectAndNext("("); // skip (
-		std::vector<ASTParameter> parameters;
+		std::vector<Parameter> parameters;
 		while (!AtEof() && !At(")"))
 		{
 			parameters.push_back(NextParameter());

@@ -1,5 +1,5 @@
-#include "csaw.h"
-#include "parser/parser.h"
+#include <csaw/csaw.h>
+#include <csaw/parser.h>
 
 #include <iostream>
 

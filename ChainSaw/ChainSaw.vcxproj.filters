@@ -27,7 +27,19 @@
     <ClCompile Include="src\ast\asttype.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\compiler\comexprs.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
     <ClCompile Include="src\compiler\compiler.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\comstmts.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\environment.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler\operators.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\parser\exprs.cpp">
@@ -39,36 +51,24 @@
     <ClCompile Include="src\parser\stmts.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\parser\token.cpp">
+    <ClCompile Include="src\parser\Token.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\csaw.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\compiler\operators.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\environment.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\comstmts.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="src\compiler\comexprs.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ast\ast.h">
+    <ClInclude Include="include\csaw\ast.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="src\compiler\compiler.h">
+    <ClInclude Include="include\csaw\compiler.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="src\parser\parser.h">
+    <ClInclude Include="include\csaw\csaw.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="src\csaw.h">
+    <ClInclude Include="include\csaw\parser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

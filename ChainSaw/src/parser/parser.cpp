@@ -1,9 +1,9 @@
-#include "parser.h"
+#include <csaw/parser.h>
 
 #include <fstream>
 #include <iostream>
 
-bool csaw::Parse(const std::shared_ptr<Environment>& env, const std::string& filename)
+bool csaw::Parse(const EnvironmentPtr& env, const std::string& filename)
 {
 	std::ifstream stream(filename);
 	if (!stream)
@@ -12,7 +12,7 @@ bool csaw::Parse(const std::shared_ptr<Environment>& env, const std::string& fil
 	return Parse(env, stream);
 }
 
-bool csaw::Parse(const std::shared_ptr<Environment>& env, std::istream& stream)
+bool csaw::Parse(const EnvironmentPtr& env, std::istream& stream)
 {
 	Parser parser(stream);
 	parser.Next();
@@ -25,7 +25,7 @@ bool csaw::Parse(const std::shared_ptr<Environment>& env, std::istream& stream)
 	return true;
 }
 
-bool csaw::ParseInc(const std::shared_ptr<Environment>& env, const std::filesystem::path& filepath)
+bool csaw::ParseInc(const EnvironmentPtr& env, const std::filesystem::path& filepath)
 {
 	std::ifstream stream(filepath);
 	if (!stream)
@@ -96,7 +96,7 @@ static int escape(int c)
 	}
 }
 
-std::shared_ptr<csaw::Token> csaw::Parser::Next()
+csaw::TokenPtr csaw::Parser::Next()
 {
 	int c = read();
 
@@ -183,7 +183,7 @@ std::shared_ptr<csaw::Token> csaw::Parser::Next()
 	return m_Current = std::make_shared<Token>(TOKEN_OPERATOR, std::string{ (char)c }, m_Line);
 }
 
-std::shared_ptr<csaw::Token> csaw::Parser::Current()
+csaw::TokenPtr csaw::Parser::Current()
 {
 	return m_Current;
 }
@@ -233,30 +233,30 @@ bool csaw::Parser::ExpectAndNext(const TokenType type)
 	return true;
 }
 
-std::shared_ptr<csaw::ASTType> csaw::Parser::NextType()
+csaw::TypePtr csaw::Parser::NextType()
 {
 	return NextType(NextIndexExpr());
 }
 
-std::shared_ptr<csaw::ASTType> csaw::Parser::NextType(const std::shared_ptr<Expr>& type)
+csaw::TypePtr csaw::Parser::NextType(const ExprPtr& type)
 {
 	if (auto t = std::dynamic_pointer_cast<IdExpr>(type))
-		return ASTType::Get(t->Value);
+		return Type::Get(t->Value);
 	if (auto t = std::dynamic_pointer_cast<IndexExpr>(type)) {
 		auto type = NextType(t->Object);
 		auto size = (size_t)std::dynamic_pointer_cast<NumExpr>(t->Index)->Value;
-		return ASTType::Get(type, size);
+		return Type::Get(type, size);
 	}
 
 	std::cerr << "unsupported type expression" << std::endl;
 	throw;
 }
 
-csaw::ASTParameter csaw::Parser::NextParameter()
+csaw::Parameter csaw::Parser::NextParameter()
 {
 	auto pname = m_Current->Value;
 	ExpectAndNext(TOKEN_IDENTIFIER); // skip name
 	ExpectAndNext(":"); // skip :
 	auto ptype = NextType();
-	return ASTParameter(pname, ptype);
+	return Parameter(pname, ptype);
 }

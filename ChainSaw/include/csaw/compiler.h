@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ast/ast.h"
+#include "ast.h"
 
 #include <filesystem>
 #include <map>
@@ -88,14 +88,18 @@ namespace csaw
 		std::vector<std::pair<std::string, type_t>> fields;
 	};
 
+	class Environment;
+
+	typedef std::shared_ptr<Environment> EnvironmentPtr;
+
 	class Environment
 	{
 	public:
-		Environment(const std::shared_ptr<Environment>& parent)
+		Environment(const EnvironmentPtr& parent)
 			: m_Parent(parent) {}
 
 		Environment(const std::filesystem::path& path)
-			: Environment(std::shared_ptr<Environment>())
+			: Environment(EnvironmentPtr())
 		{
 			m_Path = path;
 		}
@@ -116,7 +120,7 @@ namespace csaw
 
 	private:
 		std::filesystem::path m_Path;
-		std::shared_ptr<Environment> m_Parent;
+		EnvironmentPtr m_Parent;
 		std::map<std::string, value_t> m_Variables;
 		llvm::Value* m_VarArgs = nullptr;
 
@@ -170,37 +174,37 @@ namespace csaw
 	};
 
 	// GenIR for Types
-	type_t GenIR(const std::shared_ptr<ASTType>& type);
+	type_t GenIR(const std::shared_ptr<Type>& type);
 	type_t GenIR(const std::string& type);
-	type_t GenIR(const std::shared_ptr<ASTArrayType>& type);
+	type_t GenIR(const std::shared_ptr<ArrayType>& type);
 
 	// GenIR for Statements
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Stmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<AliasStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<EnclosedStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ForStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<FunStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IfStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IncStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<RetStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ThingStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarStmt>& stmt);
-	void GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<WhileStmt>& stmt);
+	void GenIR(const EnvironmentPtr& env, const StmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const AliasStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const EnclosedStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const ForStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const FunStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const IfStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const IncStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const RetStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const ThingStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const VarStmtPtr& stmt);
+	void GenIR(const EnvironmentPtr& env, const WhileStmtPtr& stmt);
 
 	// GenIR for Expressions
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Expr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<BinExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<CallExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ChrExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ConExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IdExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IndexExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<LambdaExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<MemExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<NumExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<StrExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<UnExpr>& expr);
-	value_t GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarArgExpr>& expr);
+	value_t GenIR(const EnvironmentPtr& env, const ExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const BinExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const CallExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const ChrExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const ConExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const IdExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const IndexExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const LambdaExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const MemExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const NumExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const StrExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const UnExprPtr& expr);
+	value_t GenIR(const EnvironmentPtr& env, const VarArgExprPtr& expr);
 
 	// Predefined Binary Operators
 	value_t OpAdd(value_t left, value_t right);

@@ -1,8 +1,8 @@
-#include "compiler.h"
+#include <csaw/compiler.h>
 
-csaw::type_t csaw::GenIR(const std::shared_ptr<ASTType>& type)
+csaw::type_t csaw::GenIR(const TypePtr& type)
 {
-	if (auto t = std::dynamic_pointer_cast<ASTArrayType>(type))
+	if (auto t = std::dynamic_pointer_cast<ArrayType>(type))
 		return GenIR(t);
 
 	if (!type)
@@ -41,9 +41,9 @@ csaw::type_t csaw::GenIR(const std::string& type)
 	throw;
 }
 
-csaw::type_t csaw::GenIR(const std::shared_ptr<ASTArrayType>& type)
+csaw::type_t csaw::GenIR(const ArrayTypePtr& type)
 {
-	auto t = GenIR(type->Type);
+	auto t = GenIR(type->Element);
 	return type_t(t.name, llvm::ArrayType::get(t.type, type->Size), t.element);
 }
 

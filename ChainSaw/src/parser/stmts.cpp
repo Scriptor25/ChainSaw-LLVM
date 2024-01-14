@@ -1,10 +1,10 @@
-#include "parser.h"
+#include <csaw/parser.h>
 
-std::shared_ptr<csaw::Stmt> csaw::Parser::NextStmt(bool end)
+csaw::StmtPtr csaw::Parser::NextStmt(bool end)
 {
 	if (At(";")) {
 		Next(); // skip ;
-		return std::shared_ptr<Stmt>();
+		return StmtPtr();
 	}
 
 	if (At("{"))
@@ -45,9 +45,9 @@ std::shared_ptr<csaw::Stmt> csaw::Parser::NextStmt(bool end)
 	return expr;
 }
 
-std::shared_ptr<csaw::EnclosedStmt> csaw::Parser::NextEnclosedStmt()
+csaw::EnclosedStmtPtr csaw::Parser::NextEnclosedStmt()
 {
-	std::vector<std::shared_ptr<Stmt>> enclosed;
+	std::vector<StmtPtr> enclosed;
 
 	ExpectAndNext("{"); // skip {
 	while (!AtEof() && !At("}"))
@@ -57,10 +57,10 @@ std::shared_ptr<csaw::EnclosedStmt> csaw::Parser::NextEnclosedStmt()
 	return std::make_shared<EnclosedStmt>(enclosed);
 }
 
-std::shared_ptr<csaw::AliasStmt> csaw::Parser::NextAliasStmt(bool end)
+csaw::AliasStmtPtr csaw::Parser::NextAliasStmt(bool end)
 {
 	std::string alias;
-	std::shared_ptr<ASTType> origin;
+	TypePtr origin;
 
 	ExpectAndNext("alias"); // skip "alias"
 	alias = m_Current->Value;
@@ -73,10 +73,10 @@ std::shared_ptr<csaw::AliasStmt> csaw::Parser::NextAliasStmt(bool end)
 	return std::make_shared<AliasStmt>(alias, origin);
 }
 
-std::shared_ptr<csaw::ForStmt> csaw::Parser::NextForStmt(bool end)
+csaw::ForStmtPtr csaw::Parser::NextForStmt(bool end)
 {
-	std::shared_ptr<Stmt> begin, loop, body;
-	std::shared_ptr<Expr> condition;
+	StmtPtr begin, loop, body;
+	ExprPtr condition;
 
 	ExpectAndNext("for"); // skip "for"
 	ExpectAndNext("("); // skip (
@@ -100,13 +100,13 @@ std::shared_ptr<csaw::ForStmt> csaw::Parser::NextForStmt(bool end)
 	return std::make_shared<ForStmt>(begin, condition, loop, body);
 }
 
-std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
+csaw::FunStmtPtr csaw::Parser::NextFunStmt()
 {
 	bool constructor, vararg;
 	std::string name;
-	std::shared_ptr<ASTType> type, member;
-	std::vector<ASTParameter> parameters;
-	std::shared_ptr<EnclosedStmt> body;
+	TypePtr type, member;
+	std::vector<Parameter> parameters;
+	EnclosedStmtPtr body;
 
 	constructor = At("$");
 	if (constructor)
@@ -133,7 +133,7 @@ std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
 
 	if (constructor)
 	{
-		type = ASTType::Get(name);
+		type = Type::Get(name);
 	}
 	else if (At(":"))
 	{
@@ -175,10 +175,10 @@ std::shared_ptr<csaw::FunStmt> csaw::Parser::NextFunStmt()
 	return std::make_shared<FunStmt>(constructor, name, type, parameters, vararg, member, body);
 }
 
-std::shared_ptr<csaw::IfStmt> csaw::Parser::NextIfStmt()
+csaw::IfStmtPtr csaw::Parser::NextIfStmt()
 {
-	std::shared_ptr<Expr> condition;
-	std::shared_ptr<Stmt> then, else_;
+	ExprPtr condition;
+	StmtPtr then, else_;
 
 	ExpectAndNext("if"); // skip "if"
 	ExpectAndNext("("); // skip (
@@ -196,7 +196,7 @@ std::shared_ptr<csaw::IfStmt> csaw::Parser::NextIfStmt()
 	return std::make_shared<IfStmt>(condition, then, else_);
 }
 
-std::shared_ptr<csaw::IncStmt> csaw::Parser::NextIncStmt(bool end)
+csaw::IncStmtPtr csaw::Parser::NextIncStmt(bool end)
 {
 	std::string path;
 
@@ -209,9 +209,9 @@ std::shared_ptr<csaw::IncStmt> csaw::Parser::NextIncStmt(bool end)
 	return std::make_shared<IncStmt>(path);
 }
 
-std::shared_ptr<csaw::RetStmt> csaw::Parser::NextRetStmt(bool end)
+csaw::RetStmtPtr csaw::Parser::NextRetStmt(bool end)
 {
-	std::shared_ptr<Expr> value;
+	ExprPtr value;
 
 	ExpectAndNext("ret"); // skip "ret"
 	if (!At(";"))
@@ -222,10 +222,10 @@ std::shared_ptr<csaw::RetStmt> csaw::Parser::NextRetStmt(bool end)
 	return std::make_shared<RetStmt>(value);
 }
 
-std::shared_ptr<csaw::ThingStmt> csaw::Parser::NextThingStmt(bool end)
+csaw::ThingStmtPtr csaw::Parser::NextThingStmt(bool end)
 {
 	std::string name, group = "";
-	std::vector<ASTParameter> fields;
+	std::vector<Parameter> fields;
 
 	ExpectAndNext("thing"); // skip "thing"
 	ExpectAndNext(":"); // skip :
@@ -257,10 +257,10 @@ std::shared_ptr<csaw::ThingStmt> csaw::Parser::NextThingStmt(bool end)
 	return std::make_shared<ThingStmt>(name, group, fields);
 }
 
-std::shared_ptr<csaw::WhileStmt> csaw::Parser::NextWhileStmt(bool end)
+csaw::WhileStmtPtr csaw::Parser::NextWhileStmt(bool end)
 {
-	std::shared_ptr<Expr> condition;
-	std::shared_ptr<Stmt> body;
+	ExprPtr condition;
+	StmtPtr body;
 
 	ExpectAndNext("while"); // skip "while"
 	ExpectAndNext("("); // skip (
@@ -272,13 +272,13 @@ std::shared_ptr<csaw::WhileStmt> csaw::Parser::NextWhileStmt(bool end)
 	return std::make_shared<WhileStmt>(condition, body);
 }
 
-std::shared_ptr<csaw::VarStmt> csaw::Parser::NextVarStmt(const std::shared_ptr<Expr>& expr, bool end)
+csaw::VarStmtPtr csaw::Parser::NextVarStmt(const ExprPtr& expr, bool end)
 {
 	if ((std::dynamic_pointer_cast<IdExpr>(expr) || std::dynamic_pointer_cast<IndexExpr>(expr)) && At(TOKEN_IDENTIFIER))
 	{
-		std::shared_ptr<ASTType> type;
+		TypePtr type;
 		std::string name;
-		std::shared_ptr<Expr> value;
+		ExprPtr value;
 
 		type = NextType(expr);
 		name = m_Current->Value;
@@ -299,5 +299,5 @@ std::shared_ptr<csaw::VarStmt> csaw::Parser::NextVarStmt(const std::shared_ptr<E
 		return std::make_shared<VarStmt>(type, name, value);
 	}
 
-	return std::shared_ptr<VarStmt>();
+	return VarStmtPtr();
 }

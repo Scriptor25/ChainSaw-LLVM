@@ -1,10 +1,11 @@
-#include "../parser/parser.h"
-#include "compiler.h"
+#include <csaw/compiler.h>
+#include <csaw/parser.h>
 
 #include <iostream>
+
 #include <llvm/IR/Verifier.h>
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<Stmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const StmtPtr& stmt)
 {
 	if (auto s = std::dynamic_pointer_cast<AliasStmt>(stmt))
 		return GenIR(env, s);
@@ -36,20 +37,20 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	throw "TODO";
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<AliasStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const AliasStmtPtr& stmt)
 {
 	auto origin = GenIR(stmt->Origin);
 	return Environment::CreateAlias(stmt->Alias, origin);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<EnclosedStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const EnclosedStmtPtr& stmt)
 {
 	auto e = std::make_shared<Environment>(env);
 	for (auto& s : stmt->Body)
 		GenIR(e, s);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ForStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const ForStmtPtr& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
 	auto bheader = llvm::BasicBlock::Create(Environment::Context(), "loop.header", fun);
@@ -74,7 +75,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	Environment::Builder().SetInsertPoint(bexit);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<FunStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const FunStmtPtr& stmt)
 {
 	std::vector<llvm::Type*> types;
 	std::vector<type_t> argtypes;
@@ -169,7 +170,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	Environment::Builder().SetInsertPoint(&Environment::Module().getFunction("__global__")->back()); // insert global stuff into the global init function
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IfStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const IfStmtPtr& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
 	auto bthen = llvm::BasicBlock::Create(Environment::Context(), "if.then", fun);
@@ -196,7 +197,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	Environment::Builder().SetInsertPoint(bexit);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<IncStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const IncStmtPtr& stmt)
 {
 	if (!env->IsTopLevel())
 		throw "environment must be top level = no parent";
@@ -206,7 +207,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 		throw "failed to parse included file";
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<RetStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const RetStmtPtr& stmt)
 {
 	if (!stmt->Value)
 		Environment::Builder().CreateRetVoid();
@@ -214,7 +215,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 		Environment::Builder().CreateRet(GenIR(env, stmt->Value).value);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<ThingStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const ThingStmtPtr& stmt)
 {
 	if (stmt->Fields.empty())
 	{
@@ -247,7 +248,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	Environment::CreateType(stmt->Name, strtype, fields);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<VarStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const VarStmtPtr& stmt)
 {
 	auto type = GenIR(stmt->Type);
 
@@ -268,7 +269,7 @@ void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<
 	env->CreateVariable(stmt->Name, value);
 }
 
-void csaw::GenIR(const std::shared_ptr<Environment>& env, const std::shared_ptr<WhileStmt>& stmt)
+void csaw::GenIR(const EnvironmentPtr& env, const WhileStmtPtr& stmt)
 {
 	auto fun = Environment::Builder().GetInsertBlock()->getParent();
 	auto bheader = llvm::BasicBlock::Create(Environment::Context(), "loop.header", fun);

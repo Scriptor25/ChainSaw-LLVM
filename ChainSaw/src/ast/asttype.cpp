@@ -1,55 +1,55 @@
-#include "ast.h"
+#include <csaw/ast.h>
 
 #include <map>
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetAny()
+csaw::TypePtr csaw::Type::GetAny()
 {
 	return Get("any");
 }
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetNum()
+csaw::TypePtr csaw::Type::GetNum()
 {
 	return Get("num");
 }
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetStr()
+csaw::TypePtr csaw::Type::GetStr()
 {
 	return Get("str");
 }
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetChr()
+csaw::TypePtr csaw::Type::GetChr()
 {
 	return Get("chr");
 }
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::GetLambda()
+csaw::TypePtr csaw::Type::GetLambda()
 {
 	return Get("lambda");
 }
 
-std::shared_ptr<csaw::ASTType> csaw::ASTType::Get(const std::string& name)
+csaw::TypePtr csaw::Type::Get(const std::string& name)
 {
-	static std::map<std::string, std::shared_ptr<ASTType>> types;
+	static std::map<std::string, TypePtr> types;
 
 	auto& type = types[name];
 	if (!type)
-		return types[name] = std::shared_ptr<ASTType>(new ASTType(name));
+		return types[name] = TypePtr(new Type(name));
 
 	return type;
 }
 
-std::shared_ptr<csaw::ASTArrayType> csaw::ASTType::Get(const std::string& name, const size_t size)
+csaw::ArrayTypePtr csaw::Type::Get(const std::string& name, const size_t size)
 {
 	return Get(Get(name), size);
 }
 
-std::shared_ptr<csaw::ASTArrayType> csaw::ASTType::Get(const std::shared_ptr<ASTType>& type, const size_t size)
+csaw::ArrayTypePtr csaw::Type::Get(const TypePtr& type, const size_t size)
 {
-	static std::map<std::shared_ptr<ASTType>, std::shared_ptr<ASTArrayType>> types;
+	static std::map<TypePtr, ArrayTypePtr> types;
 
 	auto& arraytype = types[type];
 	if (!arraytype)
-		return arraytype = std::shared_ptr<ASTArrayType>(new ASTArrayType(type, size));
+		return arraytype = ArrayTypePtr(new ArrayType(type, size));
 
 	return arraytype;
 }
