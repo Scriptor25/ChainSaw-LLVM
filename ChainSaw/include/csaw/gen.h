@@ -33,10 +33,6 @@ namespace csaw
 			: Value(value), Type(type)
 		{}
 
-		value_t(llvm::Value* value)
-			: value_t(value, new type_t(value->getType()))
-		{}
-
 		operator llvm::Value* () { return Value; }
 		operator llvm::Value* () const { return Value; }
 
@@ -46,9 +42,29 @@ namespace csaw
 
 	struct function_t
 	{
+		function_t(
+			llvm::Function* function,
+			type_t* result,
+			type_t* member_of,
+			std::vector<type_t*> args,
+			bool is_var_args,
+			bool is_constructor)
+			: Function(function),
+			Result(result),
+			MemberOf(member_of),
+			Args(args),
+			IsVarArgs(is_var_args),
+			IsConstructor(is_constructor)
+		{}
 
+		llvm::Function* operator*() { return Function; }
+
+		llvm::Function* Function;
+		type_t* Result;
 		type_t* MemberOf;
 		std::vector<type_t*> Args;
+		bool IsVarArgs;
+		bool IsConstructor;
 	};
 
 	type_t* GenIR(const EnvPtr& env, const TypePtr& type);
@@ -65,6 +81,8 @@ namespace csaw
 	void GenIR(const EnvPtr& env, const ThingStmtPtr& stmt);
 	void GenIR(const EnvPtr& env, const VariableStmtPtr& stmt);
 	void GenIR(const EnvPtr& env, const WhileStmtPtr& stmt);
+
+	value_t* GenIRAssign(const EnvPtr& env, const ExprPtr& object, value_t* value);
 
 	value_t* GenIR(const EnvPtr& env, const ExprPtr& expr);
 	value_t* GenIR(const EnvPtr& env, const BinaryExprPtr& expr);
@@ -92,6 +110,13 @@ namespace csaw
 	value_t* GenIRCmpLT(const EnvPtr& env, value_t* left, value_t* right);
 	value_t* GenIRCmpGE(const EnvPtr& env, value_t* left, value_t* right);
 	value_t* GenIRCmpLE(const EnvPtr& env, value_t* left, value_t* right);
+	value_t* GenIRLogAnd(const EnvPtr& env, value_t* left, value_t* right);
+	value_t* GenIRLogOr(const EnvPtr& env, value_t* left, value_t* right);
+
+	value_t* GenIRNot(const EnvPtr& env, value_t* value);
+	value_t* GenIRNeg(const EnvPtr& env, value_t* value);
+	value_t* GenIRInv(const EnvPtr& env, value_t* value);
 
 	llvm::Value* GenIRBool(const EnvPtr& env, llvm::Value* value);
+	llvm::Value* GenIRNum(const EnvPtr& env, llvm::Value* value);
 }

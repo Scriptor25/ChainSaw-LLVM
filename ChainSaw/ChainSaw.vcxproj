@@ -24,7 +24,9 @@
     <ClCompile Include="src\ast\aststmts.cpp" />
     <ClCompile Include="src\ast\asttype.cpp" />
     <ClCompile Include="src\csaw.cpp" />
+    <ClCompile Include="src\env\compile.cpp" />
     <ClCompile Include="src\env\env.cpp" />
+    <ClCompile Include="src\env\runjit.cpp" />
     <ClCompile Include="src\generator\genexpr.cpp" />
     <ClCompile Include="src\generator\genop.cpp" />
     <ClCompile Include="src\generator\genstmt.cpp" />

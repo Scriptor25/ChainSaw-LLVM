@@ -30,7 +30,7 @@ void csaw_printf(const char* format, ...)
 	va_end(va);
 }
 
-char* csaw_readf(const char* format, ...)
+char* readf(const char* format, ...)
 {
 	std::va_list va;
 	va_start(va, format);
@@ -46,22 +46,22 @@ char* csaw_readf(const char* format, ...)
 	return str;
 }
 
-double csaw_random()
+double random()
 {
 	return double(rand()) / (RAND_MAX + 1);
 }
 
-double csaw_str_to_num(const char* x)
+double str_to_num(const char* x)
 {
 	return std::stod(x);
 }
 
-double csaw_chr_to_num(char x)
+double chr_to_num(char x)
 {
 	return double(x);
 }
 
-const char* csaw_num_to_str(double x)
+const char* num_to_str(double x)
 {
 	auto s = std::to_string(x);
 	char* str = new char[s.length()];
@@ -69,27 +69,22 @@ const char* csaw_num_to_str(double x)
 	return str;
 }
 
-char csaw_num_to_chr(double x)
+char num_to_chr(double x)
 {
 	return char(x);
 }
 
-double csaw_str_cmp(const char* a, const char* b)
+double csaw_strcmp(const char* a, const char* b)
 {
-	if (a == b)
-		return 1;
-	if (!a || !b)
-		return 0;
-
 	return strcmp(a, b);
 }
 
-double csaw_str_len(const char* x)
+double csaw_strlen(const char* x)
 {
 	return double(strlen(x));
 }
 
-char csaw_str_get(const char* x, double i)
+char csaw_strget(const char* x, double i)
 {
 	return x[size_t(i)];
 }

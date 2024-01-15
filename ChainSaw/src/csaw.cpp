@@ -80,6 +80,9 @@ int csaw::Shell(
 
 		std::stringstream stream(input);
 		Parse(env, stream);
+
+		auto result = env->RunJIT();
+		std::cout << "Exit Code " << result << std::endl;
 	}
 
 	return 0;
@@ -100,6 +103,10 @@ int csaw::Run(
 	}
 
 	env->Module().print(llvm::outs(), nullptr);
+
+	std::cout << "Running JIT..." << std::endl;
+	auto result = env->RunJIT();
+	std::cout << "Exit Code " << result << std::endl;
 
 	return 0;
 }

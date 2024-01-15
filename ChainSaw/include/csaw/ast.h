@@ -172,13 +172,13 @@ namespace csaw
 	struct IfStmt : Stmt
 	{
 		IfStmt(const ExprPtr& condition, const StmtPtr& then, const StmtPtr& else_)
-			: Condition(condition), Then(then), Else(else_) {}
+			: Condition(condition), True(then), False(else_) {}
 
 		std::ostream& operator>>(std::ostream& out) const override;
 
 		const ExprPtr Condition;
-		const StmtPtr Then;
-		const StmtPtr Else;
+		const StmtPtr True;
+		const StmtPtr False;
 	};
 
 	struct IncStmt : Stmt

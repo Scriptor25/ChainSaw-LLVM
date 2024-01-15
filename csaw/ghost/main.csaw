@@ -4,6 +4,10 @@ inc "random.csaw";
 
 @printf (format: str) ?;
 @readf: str (format: str) ?;
+@csaw_strcmp: num (a: str, b: str);
+@(!=): num (a: str, b:str) { ret csaw_strcmp(a, b) != 0; }
+@str_to_num: num (x: str);
+@num: num (x: str) { ret str_to_num(x); }
 
 ## Main - Ghost Game
 @main: num {

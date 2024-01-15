@@ -151,10 +151,10 @@ std::ostream& csaw::FunctionStmt::operator>>(std::ostream& out) const
 
 std::ostream& csaw::IfStmt::operator>>(std::ostream& out) const
 {
-	out << "if (" << Condition << ") " << Then;
-	if (!Else)
+	out << "if (" << Condition << ") " << True;
+	if (!False)
 		return out;
-	return out << " else " << Else;
+	return out << " else " << False;
 }
 
 std::ostream& csaw::IncStmt::operator>>(std::ostream& out) const
