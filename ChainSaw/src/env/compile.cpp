@@ -25,9 +25,6 @@ void csaw::Environment::Compile(const std::string& filename)
 
 	auto& triple = Module().getTargetTriple();
 
-	//llvm::outs() << triple << "\r\n";
-	//llvm::TargetRegistry::printRegisteredTargetsForVersion(llvm::outs());
-
 	std::string error;
 	auto target = llvm::TargetRegistry::lookupTarget(triple, error);
 

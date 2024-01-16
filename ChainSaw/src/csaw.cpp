@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <llvm/Support/FileSystem.h>
+
 int main(int argc, const char** argv)
 {
 	std::string path = argv[0]; // exe path
@@ -56,9 +58,9 @@ int main(int argc, const char** argv)
 }
 
 int csaw::Shell(
-	const std::string& path,
-	const std::vector<std::string>& flags,
-	const std::map<std::string, std::string>& options)
+	std::string& path,
+	std::vector<std::string>& flags,
+	std::map<std::string, std::string>& options)
 {
 	std::string filename;
 	std::vector<std::string> args;
@@ -89,11 +91,11 @@ int csaw::Shell(
 }
 
 int csaw::Run(
-	const std::string& path,
-	const std::string& filename,
-	const std::vector<std::string>& args,
-	const std::vector<std::string>& flags,
-	const std::map<std::string, std::string>& options)
+	std::string& path,
+	std::string& filename,
+	std::vector<std::string>& args,
+	std::vector<std::string>& flags,
+	std::map<std::string, std::string>& options)
 {
 	auto env = std::make_shared<Environment>(path, filename, args, flags, options);
 	if (!Parse(env, filename))
@@ -102,16 +104,49 @@ int csaw::Run(
 		return 1;
 	}
 
-	env->Module().print(llvm::outs(), nullptr);
+	if (flags & "jit")
+	{
+		std::cout << "Running JIT..." << std::endl;
+		auto result = env->RunJIT();
+		std::cout << "Exit Code " << result << std::endl;
+	}
+	else if (flags & "emit-llvm")
+	{
+		std::cout << "Writing LLVM IR..." << std::endl;
 
-	std::cout << "Running JIT..." << std::endl;
-	auto result = env->RunJIT();
-	std::cout << "Exit Code " << result << std::endl;
+		std::string output;
+		if (options.contains("o")) output = options["o"];
+		else output = filename.substr(0, filename.find_last_of('.')) + ".ll";
+
+		std::error_code ec;
+		llvm::raw_fd_ostream dst(output, ec, llvm::sys::fs::OF_None);
+		if (ec)
+		{
+			llvm::errs() << "Failed to open file '" << output << "': " << ec.message() << '\n';
+			return 1;
+		}
+
+		env->Module().print(dst, nullptr);
+
+		std::cout << "Done." << std::endl;
+	}
+	else
+	{
+		std::cout << "Compiling..." << std::endl;
+
+		std::string output;
+		if (options.contains("o")) output = options["o"];
+		else output = filename.substr(0, filename.find_last_of('.')) + ".obj";
+
+		env->Compile(output);
+
+		std::cout << "Done." << std::endl;
+	}
 
 	return 0;
 }
 
-bool csaw::operator&(const std::vector<std::string> list, const std::string& element)
+bool csaw::operator&(const std::vector<std::string>& list, const std::string& element)
 {
 	return std::find(list.begin(), list.end(), element) != list.end();
 }
